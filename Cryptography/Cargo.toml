@@ -1,0 +1,55 @@
+[package]
+name = "neo_crypto"
+version = "0.1.0"
+authors = ["Jinghui Liao <jinghui@wayne.edu>"]
+edition = "2018"
+
+
+[dependencies]
+hmac = "0.10.1"
+sha3 = "0.9.1"
+aes-soft = "0.6.4"
+block-modes = "0.7.0"
+
+
+[dependencies.fake-simd]
+version = "0.1"
+
+[dependencies.libc]
+version = "0.2.68"
+optional = true
+
+[dependencies.failure]
+version = "0.1.5"
+
+[dependencies.hmac-sha256]
+version = "0.1.2"
+
+[dependencies.openssl]
+version = "0.10"
+
+[dependencies.block-buffer]
+version = "0.7"
+
+[dependencies.digest]
+version = "0.8"
+
+[dependencies.opaque-debug]
+version = "0.3"
+
+[dependencies.cipher]
+version = "0.2"
+
+
+[features]
+default = ["std"]
+std = ["digest/std"]
+
+compress = []
+
+
+force-soft = []
+
+[target."cfg(all(target_arch = \"aarch64\", target_os = \"linux\"))".dependencies.libc]
+version = "0.2.84"
+optional = true
