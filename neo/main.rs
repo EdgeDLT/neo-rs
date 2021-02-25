@@ -7,7 +7,7 @@ use clap::{App, AppSettings};
 fn main() {
     let arguments = App::new("neo")
         .version("v0.1.0")
-        .about("neo on rust")
+        .about("neo in rust")
         .author("Jinghui Liao <jinghui@wayne.edu>")
         .settings(&[
             AppSettings::ColoredHelp,
