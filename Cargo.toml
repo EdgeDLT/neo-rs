@@ -14,10 +14,10 @@ name = "neo"
 path = "neo/main.rs"
 
 [workspace]
-members = ["neo_core", "Wallet", "Network", "Cryptography","SGX"]
+members = ["neo_core", "Wallet", "Network", "Cryptography", "SGX", "Transaction", "VM"]
 
 [dependencies]
-neo_core = { path = "./neo_core"}
+neo_core = { path = "./neo_core" }
 neo_crypto = { path = "./Cryptography" }
 
 scrypt = { version = "0.6.3", default-features = false }
