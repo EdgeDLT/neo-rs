@@ -38,7 +38,6 @@ impl Debug for aes {
 }
 
 impl aes {
-    /// Creates a new [`aes`] from a key.
     pub fn from_key(key: KeySize) -> Self {
         let arr = GenericArray::from_slice(&key);
         let blank = U8Array::<UTerm>::default();
@@ -53,7 +52,6 @@ impl aes {
         }
     }
 
-    /// Creates a new [`aes`] from a password.
     pub fn from_pass(password: &[u8]) -> Self {
         let mac = HmacSha256::new_varkey(password).expect("somehow the key was invalid length");
         let password_hash = mac.finalize().into_bytes();
@@ -85,7 +83,6 @@ impl aes {
         cipher.encrypt_vec(&data)
     }
 
-    /// Decrypt some data.
     pub fn decrypt(&self, data: Vec<u8>) -> Vec<u8> {
         let cipher = self.aes_varlen.clone();
         cipher.decrypt_vec(&data).expect("Block mode error?")

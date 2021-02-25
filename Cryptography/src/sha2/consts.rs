@@ -1,5 +1,4 @@
 #![allow(dead_code)]
-#![cfg_attr(feature = "cargo-clippy", allow(clippy::unreadable_literal))]
 
 use fake_simd::u64x2;
 use fake_simd::u32x4;

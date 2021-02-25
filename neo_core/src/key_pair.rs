@@ -11,7 +11,6 @@ use crate::{neo_type};
 use std::convert::TryFrom;
 use std::borrow::Borrow;
 
-/// Represents the parameters for an Neo transaction
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct key_pair {
     pub public_key: neo_type::PublicKeyBin,

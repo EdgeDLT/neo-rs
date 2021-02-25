@@ -1,4 +1,3 @@
-
 pub mod base58;
 pub use self::base58::*;
 

@@ -1,5 +1,3 @@
-#![cfg_attr(feature = "cargo-clippy", allow(clippy::many_single_char_names))]
-
 use fake_simd::u64x2;
 use crate::sha2::consts::{BLOCK_LEN, K64X2};
 use block_buffer::byteorder::{BE, ByteOrder};
