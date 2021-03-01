@@ -2,7 +2,7 @@
 name = "neo"
 version = "0.1.0"
 authors = ["Jinghui Liao <jinghui@wayne.edu>"]
-description = "Rust neo cryptocurrency wallets"
+description = "neo in rust"
 edition = "2018"
 
 [lib]
@@ -14,7 +14,7 @@ name = "neo"
 path = "neo/main.rs"
 
 [workspace]
-members = ["neo_core", "Wallet", "Network", "Cryptography", "SGX", "Transaction", "VM"]
+members = ["neo_core", "Wallets", "Network", "Cryptography", "SGX", "Transaction", "VM", "Persistence", "Ledger","IO"]
 
 [dependencies]
 neo_core = { path = "./neo_core" }

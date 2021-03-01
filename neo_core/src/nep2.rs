@@ -1,5 +1,6 @@
 use crate::no_std::*;
 use rand::Rng;
+use std::io::Error;
 use std::{fmt, fmt::Display, str::FromStr, convert::{TryInto,TryFrom}};
 use scrypt::{scrypt, Params};
 
@@ -26,7 +27,7 @@ impl nep2 {
     pub fn GetNep2FromKeyPair() {}
 
 
-    pub fn GetNep2FromPrivateKey(pri_key: &'static str, passphrase: &'static str) -> String {
+    pub fn GetNep2FromPrivateKey(pri_key: &'static str, passphrase: &'static str) -> Result<String, Error> {
         let private_key = pri_key.as_bytes();
         let key_pair = key_pair::key_pair::GetKeyPairFromPrivateKey(&private_key);
         let mut addresshash:[u8;4] = key_pair.GetAddrHashFromAddress();
@@ -62,11 +63,11 @@ impl nep2 {
         assembled.extend(encrypted);
 
         // # Finally, encode with Base58Check
-        assembled.to_base58()
+        OK(assembled.to_base58())
     }
 
 
-    pub fn GetPrivateKeyFromNep2(nep2: &'static str, passphrase: &'static str) -> String{
+    pub fn GetPrivateKeyFromNep2(nep2: &'static str, passphrase: &'static str) -> Result<String, Error>{
 
         if nep2.len() != 58{
             println!("Wrong nep2");
@@ -127,6 +128,6 @@ impl nep2 {
         if kp_addresshash != address_hash{
             println!("Wrong Passphrase");
         }
-        hex::encode(pri_key)
+        Ok(hex::encode(pri_key))
     }
 }

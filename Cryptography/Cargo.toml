@@ -10,7 +10,7 @@ hmac = "0.10.1"
 sha3 = "0.9.1"
 aes-soft = "0.6.4"
 block-modes = "0.7.0"
-
+merkletree = "0.21.0"
 
 [dependencies.fake-simd]
 version = "0.1"
