@@ -1,3 +1,5 @@
+mod networks;
+
 #[cfg(test)]
 mod tests {
     #[test]

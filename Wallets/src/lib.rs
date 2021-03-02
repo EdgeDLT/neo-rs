@@ -1,3 +1,9 @@
+mod verify;
+mod nep2;
+mod nep6;
+mod signing;
+
+
 #[cfg(test)]
 mod tests {
     #[test]
