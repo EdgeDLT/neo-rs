@@ -38,7 +38,6 @@ impl key_pair {
         addr[0] = 23;
         addr[1..21].copy_from_slice(&hs);
 
-
         let sum = &checksum(&addr[0..21])[0..4];
 
         addr[21..25].copy_from_slice(sum);

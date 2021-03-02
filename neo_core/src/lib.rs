@@ -28,5 +28,7 @@ pub use self::neo_type::*;
 
 pub mod key_pair;
 mod misc;
+mod fixed8;
+mod stringstream;
 
 // pub use self::key_pair::*;
