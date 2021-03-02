@@ -82,12 +82,12 @@ impl StringStream {
      * The first byte read indicates if more bytes need to be read off.
      */
     pub fn readVarInt(&mut self) -> Result<u32, Error> {
-        let mut len = i32::from_str_radix(self.read(1)?.as_str(), 16).unwrap;
+        let mut len = i32::from_str_radix(self.read(1)?.as_str(), 16)?;
 
         match len {
-            0xfd => len = i32::from_str_radix(reverseHex(self.read(2)?.as_str())?, 16),
-            0xfe => len = i32::from_str_radix(reverseHex(self.read(4)?.as_str())?, 16),
-            0xff => len = i32::from_str_radix(reverseHex(self.read(8)?.as_str())?, 16),
+            0xfd => len = i32::from_str_radix(reverseHex(self.read(2)?.as_str())?, 16)?,
+            0xfe => len = i32::from_str_radix(reverseHex(self.read(4)?.as_str())?, 16)?,
+            0xff => len = i32::from_str_radix(reverseHex(self.read(8)?.as_str())?, 16)?,
             _ => unreachable!()
         }
         Ok(len)

@@ -25,16 +25,6 @@ pub type AddressHex = &'static str;
 pub type WifKeyHex = &'static str;
 pub type SignatureHex = &'static str;
 
-pub const SCRYPT_N: usize = 16384;
-pub const SCRYPT_R: u32 = 8;
-pub const SCRYPT_P: u32 = 8;
-pub const SCRYPT_LOG_N: u8 = 14;
-pub const SCRYPT_DK_LEN: usize = 64;
-
-pub const NEP_HEADER_1: u8 = 0x01;
-pub const NEP_HEADER_2: u8 = 0x42;
-pub const NEP_FLAG: u8 = 0xe0;
-
 
 
 

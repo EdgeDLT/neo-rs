@@ -30,5 +30,6 @@ pub mod key_pair;
 mod misc;
 mod fixed8;
 mod stringstream;
+mod consts;
 
 // pub use self::key_pair::*;
