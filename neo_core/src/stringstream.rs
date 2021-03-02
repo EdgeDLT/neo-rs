@@ -3,8 +3,9 @@
 use std::io::Error;
 use crate::misc::reverseHex;
 
+#[derive(Debug,Clone,Hash,Eq, PartialEq)]
 pub struct StringStream {
-    pub s: String,
+    pub s: &'static str,
     pub pter: u32,
 }
 
@@ -18,7 +19,7 @@ impl StringStream {
      */
     pub fn new(str: &str) -> StringStream {
         Self {
-            s: String::from(str),
+            s: str.clone(),
             pter: 0,
         }
     }
@@ -90,7 +91,7 @@ impl StringStream {
             0xff => len = i32::from_str_radix(reverseHex(self.read(8)?.as_str())?, 16)?,
             _ => unreachable!()
         }
-        Ok(len)
+        Ok(len as u32)
     }
 
     /**

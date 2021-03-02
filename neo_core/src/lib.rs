@@ -20,16 +20,15 @@ pub mod no_std;
 pub mod utilities;
 pub use self::utilities::*;
 
-// pub mod nep2;
-// pub use self::nep2::*;
-
-pub mod neo_type;
-pub use self::neo_type::*;
-
+pub mod neo_type
+;
 pub mod key_pair;
-mod misc;
-mod fixed8;
-mod stringstream;
-mod consts;
+pub use self::key_pair::*;
+
+pub mod misc;
+pub mod fixed8;
+pub mod stringstream;
+pub mod consts;
+pub mod convert;
 
 // pub use self::key_pair::*;

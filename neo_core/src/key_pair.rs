@@ -7,9 +7,10 @@ use neo_crypto::{ecdsa::{CipherSuite, ECECDSA},
                  hex,
 };
 
-use crate::{neo_type, PublicKeyBin, PrivateKeyBin, AddressBin, AddressHex};
+
 use std::convert::TryFrom;
 use std::borrow::Borrow;
+use crate::neo_type::{PublicKeyBin, PrivateKeyBin, AddressHex, PRIVATE_KEY_BIN_LEN, WIF_KEY_BIN_LEN, PUBLIC_KEY_BIN_LEN};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct key_pair {
@@ -23,7 +24,7 @@ impl key_pair {
     pub fn new() -> key_pair {
         let mut ecdsa = ECECDSA::from_suite(CipherSuite::P256_SHA256_TAI).unwrap();
         let mut rng = rand::rngs::OsRng {};
-        let sec_key: [u8; neo_type::PRIVATE_KEY_BIN_LEN] = rng.gen();
+        let sec_key: PrivateKeyBin = rng.gen();
 
         let mut pub_key = ecdsa.derive_public_key(&sec_key).unwrap();
 
@@ -79,9 +80,14 @@ impl key_pair {
         Ok(&self.address)
     }
 
-    pub fn get_addr_hash_from_address(&self) -> [u8; 4] {
+    pub fn get_addr_hash(&self) -> [u8; 4] {
         let cs = &checksum(&self.address.from_base58().unwrap())[0..4];
         cs.try_into().unwrap()
+    }
+
+    pub fn get_addr_hash_from_address(addr:&str) ->Result<&[u8], Error> {
+        let cs = &checksum(&addr.from_base58().unwrap());
+        cs.try_into()
     }
 
 
@@ -112,7 +118,7 @@ impl key_pair {
             Err(());
         }
 
-        let mut pk = [0u8; neo_type::PRIVATE_KEY_BIN_LEN];
+        let mut pk = [0u8; PRIVATE_KEY_BIN_LEN];
         pk.copy_from_slice(&data[1..33]);
 
         Ok(pk)
@@ -120,7 +126,7 @@ impl key_pair {
 
 
     pub fn get_wif_from_private_key(&self, pri_key: &PrivateKeyBin) -> Result<&str, Error> {
-        let mut wif = [0u8; neo_type::WIF_KEY_BIN_LEN];
+        let mut wif = [0u8; WIF_KEY_BIN_LEN];
         wif[0] = 0x80;
         wif[33] = 0x01;
         wif[1..33].copy_from_slice(pri_key);
@@ -168,8 +174,8 @@ impl fmt::Display for key_pair {
 
 impl Default for key_pair {
     fn default() -> Self { Self {
-        private_key: [0u8; neo_type::PRIVATE_KEY_BIN_LEN],
-        public_key: [0u8; neo_type::PUBLIC_KEY_BIN_LEN],
+        private_key: [0u8; PRIVATE_KEY_BIN_LEN],
+        public_key: [0u8; PUBLIC_KEY_BIN_LEN],
         address: "" } }
 }
 

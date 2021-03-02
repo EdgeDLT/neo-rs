@@ -1,5 +1,5 @@
 [package]
-name = "Wallet"
+name = "neo_wallet"
 version = "0.1.0"
 authors = ["Jinghui Liao <jinghui@wayne.edu>"]
 edition = "2018"
