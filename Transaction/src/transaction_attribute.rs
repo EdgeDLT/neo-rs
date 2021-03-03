@@ -1,25 +1,15 @@
-// import { num2hexstring, num2VarInt, reverseHex, StringStream } from "../../u";
-// import { TxAttrUsage } from "../txAttrUsage";
-
-use crate::usage::TxAttrUsage;
+use crate::usage::{TxAttrUsage, toTxAttrUsage};
 use neo_core::stringstream::StringStream;
 use std::error::Error;
+use crate::txmodel::{ transaction_param};
+use neo_core::convert::{num2hexstring, num2VarInt, hex2int};
 
-const maxTransactionAttributeSize:u32 = 65535;
+const maxTransactionAttributeSize: u32 = 65535;
 
+#[derive(Debug, Eq, PartialEq, Copy, Clone, Hash, Serialize, Deserialize)]
 pub struct TransactionAttribute {
-    usage: TxAttrUsage,
-    data: &'static str,
-}
-
-fn toTxAttrUsage(tp: TxAttrUsage) -> TxAttrUsage {
-    // if (typeof type == "string") {
-    //   if (type in TxAttrUsage) {
-    //     return TxAttrUsage[type as keyof typeof TxAttrUsage];
-    //   }
-    //   throw new Error(`${type} not found in TxAttrUsage!`);
-    // }
-    tp
+    pub(crate) usage: TxAttrUsage,
+    pub(crate) data: &'static str,
 }
 
 /**
@@ -28,57 +18,49 @@ fn toTxAttrUsage(tp: TxAttrUsage) -> TxAttrUsage {
  *
  * For example, a remark is attached as an attribute.
  */
-impl TransactionAttribute {
-
-    pub fn deserialize(&self, hex: string) -> Result<TransactionAttribute, Error> {
+impl transaction_param for TransactionAttribute {
+    fn deserialize(&self, hex: &str) -> Result<TransactionAttribute, Error> {
         let ss = StringStream.new(hex);
-        this.fromStream(ss)
+        self.fromStream(ss)
     }
 
-    pub fn fromStream(&self, ss: &mut StringStream) -> Result<TransactionAttribute, Error> {
-        let usage = parseInt(ss.read(1), 16);
-        let mut data= "";
+    fn fromStream(&self, ss: &mut StringStream) -> Result<TransactionAttribute, Error> {
+        let usage = hex2int(ss.read(1)?.as_str())?;
+        let mut data = "";
         match usage {
             0x00 | 0x30 | 0xa1..=0xaf => data = ss.read(32)?.as_str(),
-            0x02 | 0x03 => data = num2hexstring(usage) + ss.read(32)?.as_str(),
+            0x02 | 0x03 => data = num2hexstring(usage as i32) + ss.read(32)?.as_str(),
             0x20 => data = ss.read(20)?.as_str(),
-            0x81 => data = ss.read(parseInt(ss.read(1), 16))?.as_str(),
+            0x81 => data = ss.read(hex2int(ss.read(1)?.as_str())? as u32)?.as_str(),
             0x90 | u if u >= 0xf0 => data = ss.readVarBytes()?.as_str(),
             _ => unreachable!()
         }
 
-        Ok(TransactionAttribute { usage, data })
+        Ok(TransactionAttribute { usage:toTxAttrUsage(usage as usize)?, data })
     }
 
-    pub fn serialize(&self) -> Result<String, Error>{
+    fn serialize(&self) -> Result<&str, Error> {
+        let mut out = num2hexstring(&self.usage as i32);
 
-    let out = num2hexstring(self.usage as u32);
+        match &self.usage as i32 {
+            0x81 => out += num2hexstring((&self.data.len() / 2) as i32),
+            0x90 | a if a >= 0xf0 => out += num2VarInt((&self.data.len() / 2) as i32),
+            0x02 | 0x03 => out += &self.data[2..2 + 64].clone(),
+            _ => out += &self.data.clone(),
+        }
 
-    if (this.usage == 0x81) {
-    out += num2hexstring(this.data.length / 2);
-    } else if (this.usage == 0x90 | | this.usage > = 0xf0) {
-    out += num2VarInt(this.data.length / 2);
-    }
-    if (this.usage == 0x02 | | this.usage == 0x03) {
-    out += this.data.substr(2, 64);
-    } else {
-    out += this.data;
-    }
-    return out;
+        Ok(out)
     }
 
-    pub fn export(&self) -> Result<TransactionAttribute, Error> {
-    Ok(TransactionAttribute {
-    usage: this.usage,
-    data: this.data,
-    })
+    fn equals(&self, other: &TransactionAttribute) -> bool {
+        self.usage == other.usage
+            && self.data == other.data
     }
 
-    pub fn equals(&self, other:&TransactionAttribute)-> bool {
-    return (
-    this.usage == toTxAttrUsage(other.usage) & & this.data == other.data
-    );
+    fn export(&self) -> Result<TransactionAttribute, Error> {
+        Ok(TransactionAttribute {
+            usage: self.usage.clone(),
+            data: self.data.clone(),
+        })
     }
 }
-
-export default TransactionAttribute;

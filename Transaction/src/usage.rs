@@ -1,8 +1,15 @@
+
+use num_enum::TryFromPrimitive;
+use std::convert::TryFrom;
+use std::error::Error;
+use std::fmt;
+
 /**
  * Enum for TransactionAttributeUsage
  * @enum {number}
  */
-#[derive(Debug)]
+#[derive(Debug, TryFromPrimitive)]
+#[repr(usize)]
 pub enum TxAttrUsage {
   ContractHash = 0,
   ECDH02 = 2,
@@ -42,4 +49,19 @@ pub enum TxAttrUsage {
   Remark13 = 253,
   Remark14 = 254,
   Remark15 = 255,
+}
+
+impl fmt::Display for TxAttrUsage {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+        // or, alternatively:
+        // fmt::Debug::fmt(self, f)
+    }
+}
+
+pub fn toTxAttrUsage(tp: usize) -> Result<TxAttrUsage, Error> {
+   match TxAttrUsage::try_from(te) {
+        Ok(tp) => Ok(tp),
+        Err(_) => Err(()),
+    }
 }

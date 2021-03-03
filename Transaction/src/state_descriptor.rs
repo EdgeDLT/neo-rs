@@ -1,99 +1,79 @@
-// import {
-//   hexString2str,
-//   num2hexString,
-//   num2VarInt,
-//   str2hexString,
-//   StringStream,
-// } from "../../u";
 use neo_wallet;
+use num_enum::TryFromPrimitive;
+use std::convert::TryFrom;
+use std::error::Error;
+use crate::txmodel::{Transaction, Transaction_Trait, transaction_param};
+use neo_core::convert::{num2VarInt, hex2int};
+use neo_core::stringstream::StringStream;
 
+#[derive(Debug, TryFromPrimitive)]
+#[repr(usize)]
 pub enum StateType {
-  Account = 0x40,
-  Validator = 0x48,
+    Account = 0x40,
+    Validator = 0x48,
 }
 
-pub interface StateDescriptorLike {
-  type: String | number;
-  key: String;
-  field: String;
-  value: String;
-}
 
-fn toStateType(type: StateType | String | number): StateType {
-  if (typeof type === "String") {
-    if (type in StateType) {
-      return StateType[type as keyof typeof StateType];
+fn toStateType(te: usize) -> StateType {
+    match StateType::try_from(te) {
+        Ok(tp) => tp,
+        Err(_) => Err(()),
     }
-    throw new Error(`${type} not found in StateType!`);
-  }
-  return type;
 }
 
-pub struct StateDescriptor;
-
-impl StateDescriptor {
-    
-  pub fn deserialize(&self, hex: String): StateDescriptor {
-    let ss = new StringStream(hex);
-    return this.fromStream(ss);
-  }
-
-  pub fromStream(&self, ss: &StringStream)-> StateDescriptor {
-    let type = parseInt(ss.read(), 16);
-    let key = ss.readVarBytes();
-    let field = hexString2str(ss.readVarBytes());
-    let value = ss.readVarBytes();
-    return new StateDescriptor({ type, key, field, value });
-  }
-
-  /** Indicates the role of the transaction sender */
-  pub type: StateType;
-  /** The signing field of the transaction sender (scripthash for voting) */
-  pub key: String;
-  /** Indicates action for this descriptor */
-  pub field: String;
-  /** Data depending on field. For voting, this is the list of pubkeys to vote for. */
-  pub value: String;
-
-  pub letructor(&self, obj: Partial<StateDescriptorLike> = {}) {
-    this.type = obj.type ? toStateType(obj.type) : StateType.Account;
-    this.key = obj.key || "";
-    this.field = obj.field || "";
-    this.value = obj.value || "";
-  }
-
-  pub get [Symbol.toStringTag](): String {
-    return "state_descriptor";
-  }
-
-  pub serialize(&self)->String {
-    let out = num2hexString(this.type);
-    out += num2VarInt(this.key.length / 2);
-    out += this.key;
-    let hexField = str2hexString(this.field);
-    out += num2VarInt(hexField.length / 2);
-    out += hexField;
-    out += num2VarInt(this.value.length / 2);
-    out += this.value;
-    return out;
-  }
-
-  pub export(&self)-> StateDescriptorLike {
-    return {
-      type: this.type,
-      key: this.key,
-      field: this.field,
-      value: this.value,
-    };
-  }
-
-  pub equals(other: StateDescriptorLike): boolean {
-    return (
-      this.type === toStateType(other.type) &&
-      this.key === other.key &&
-      this.field === other.field &&
-      this.value === other.value
-    );
-  }
+#[derive(Debug, Eq, PartialEq, Copy, Clone, Hash, Serialize, Deserialize)]
+pub struct StateDescriptor
+{
+    state_type: StateType,
+    key: &'static str,
+    field: &'static str,
+    value: &'static str,
 }
-pub default StateDescriptor;
+
+
+impl transaction_param for StateDescriptor {
+    fn deserialize(&self, hex: &str) -> Result<StateDescriptor, Error> {
+        let ss = StringStream.new(hex);
+        self.fromStream(ss)
+    }
+
+    fn fromStream(&self, ss: &mut StringStream) -> Result<StateDescriptor, Error> {
+        let state_type = hex2int(ss.read(1)?.as_str())?;
+
+        let key = ss.readVarBytes()?.as_str();
+        let field = hexString2str(ss.readVarBytes());
+        let value = ss.readVarBytes()?.as_str();
+
+        Ok(StateDescriptor { state_type: toStateType(state_type as usize), key, field, value })
+    }
+
+
+    fn serialize(&self) -> Result<&str, Error> {
+        let out = num2hexString(&self.state_type);
+
+        out += num2VarInt((&self.key.len() / 2) as i32);
+        out += self.key.clone();
+        let hexField = str2hexString(self.field);
+        out += num2VarInt(&hexField.len() / 2);
+        out += hexField;
+        out += num2VarInt((&self.value.len() / 2) as i32);
+        out += self.value;
+        Ok(out)
+    }
+
+    fn equals(&self, other: &StateDescriptor) -> bool {
+        self.state_type == other.state_type &&
+            self.key == other.key &&
+            self.field == other.field &&
+            self.value == other.value
+    }
+
+    fn export(&self) -> Result<StateDescriptor, Error> {
+        Ok(StateDescriptor {
+            state_type: self.state_type.clone(),
+            key: self.key.clone(),
+            field: self.field.clone(),
+            value: self.value.clone(),
+        })
+    }
+}

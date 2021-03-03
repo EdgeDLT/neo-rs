@@ -55,7 +55,7 @@ impl verify {
      */
     pub fn isPublicKey(encodedKey: &str) -> bool {
         let unencoded = getPublicKeyUnencoded(encodedKey);
-        let tail = parseInt(unencoded.substr(unencoded.len() - 2, 2), 16);
+        let tail = hex2int(unencoded.substr(unencoded.len() - 2, 2), 16);
         if (encodedKey[0..2] == "02" && tail % 2 == 0) ||
             (encodedKey[0..2] == "03" && tail % 2 == 1) {
             true

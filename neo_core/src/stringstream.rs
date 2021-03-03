@@ -116,7 +116,6 @@ impl StringStream {
             false => { &self.s[0..self.pter] }
         };
 
-
         let current = self.read(1)?;
         let after = self.peek(5)?;
         self.pter = self.pter - 2;

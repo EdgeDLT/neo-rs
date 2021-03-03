@@ -5,7 +5,7 @@ use std::fmt;
 use std::fmt::Error;
 use crate::misc::reverseHex;
 
-#[derive(Clone)]
+#[derive(Clone,Debug,Eq, PartialEq)]
 pub struct fixed8(i64);
 
 impl fixed8 {
@@ -38,6 +38,7 @@ impl fixed8 {
  * @extends BN
  */
 impl Fixed8 {
+
     pub fn from_hex(&self, hex: &str) -> Result<fixed8, Error> {
         Ok(fixed8(i64::from_str_radix(hex, 16)?))
     }

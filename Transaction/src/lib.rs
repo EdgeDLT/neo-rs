@@ -7,6 +7,8 @@ pub mod transaction_input;
 pub mod transaction_attribute;
 pub mod state_descriptor;
 mod utils;
+mod txmodel;
+mod transaction_base;
 
 
 #[cfg(test)]

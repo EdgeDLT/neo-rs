@@ -1,16 +1,61 @@
-import { hash160, num2VarInt, reverseHex, StringStream } from "../../u";
-import {
-  Account,
-  getPublicKeysFromVerificationScript,
-  getSignaturesFromInvocationScript,
-  getSigningThresholdFromVerificationScript,
-  getVerificationScriptFromPublicKey,
-  verify,
-} from "../../wallet";
+// import { hash160, num2VarInt, reverseHex, StringStream } from "../../u";
+// import {
+//   Account,
+//   getPublicKeysFromVerificationScript,
+//   getSignaturesFromInvocationScript,
+//   getSigningThresholdFromVerificationScript,
+//   getVerificationScriptFromPublicKey,
+//   verify,
+// } from "../../wallet";
 
-export interface WitnessLike {
-  invocationScript: string;
-  verificationScript: string;
+
+use neo_core::convert::num2VarInt;
+use crate::txmodel::Transaction;
+use neo_core::no_std::io::Error;
+use neo_core::stringstream::StringStream;
+use neo_wallet::verify::verify;
+use neo_core::misc::reverseHex;
+use neo_core::crypto::hash160;
+
+#[derive(Debug, Eq, PartialEq, Copy, Clone, Hash, Serialize, Deserialize)]
+pub struct Witness {
+    invocationScript: &'static str,
+    verificationScript: &'static str,
+    _scriptHash: Option<&'static str>,
+}
+
+
+impl Transaction for Witness {
+    fn deserialize(&self, hex: &str) -> Result<Witness, Error> {
+        let ss = StringStream.new(hex);
+        self.fromStream(ss)
+    }
+
+    fn fromStream(&self, ss: &mut StringStream) -> Result<Witness, Error> {
+        let invocationScript = ss.readVarBytes()?.as_str();
+        let verificationScript = ss.readVarBytes()?.as_str();
+        Ok(Witness({ invocationScript, verificationScript })
+    }
+
+    fn serialize(&self) -> Result<String, Error> {
+        let invoLength = num2VarInt(self.invocationScript.len() / 2);
+        let veriLength = num2VarInt(self.verificationScript.len() / 2);
+
+        invoLength + self.invocationScript + veriLength + self.verificationScript
+    }
+
+    fn equals(&self, other: &Witness) -> bool {
+        self.invocationScript == other.invocationScript &&
+            self.verificationScript == other.verificationScript
+    }
+
+    fn export(&self) -> Result<Witness, Error> where
+        Self: Sized {
+        Ok(Witness {
+            invocationScript: self.invocationScript,
+            verificationScript: self.verificationScript,
+        })
+    }
 }
 
 /**
@@ -18,151 +63,126 @@ export interface WitnessLike {
  *
  * For example, the most common witness is the VM Script that pushes the ECDSA signature into the VM and calling CHECKSIG to prove the authority to spend the TransactionInputs in the transaction.
  */
-export class Witness {
-  public static deserialize(hex: string): Witness {
-    const ss = new StringStream(hex);
-    return this.fromStream(ss);
-  }
+impl Witness {
+    pub fn fromSignature(&self, sig: &str, publicKey: &str) -> Witness {
+        let invocationScript = "40" + sig;
+        let verificationScript = getVerificationScriptFromPublicKey(publicKey);
 
-  public static fromStream(ss: StringStream): Witness {
-    const invocationScript = ss.readVarBytes();
-    const verificationScript = ss.readVarBytes();
-    return new Witness({ invocationScript, verificationScript });
-  }
+        Witness { invocationScript, verificationScript }
+    }
 
-  public static fromSignature(sig: string, publicKey: string): Witness {
-    const invocationScript = "40" + sig;
-    const verificationScript = getVerificationScriptFromPublicKey(publicKey);
-    return new Witness({ invocationScript, verificationScript });
-  }
 
-  /**
-   * Builds a multi-sig Witness object.
-   * @param tx Hexstring to be signed.
-   * @param sigs Unordered list of signatures.
-   * @param acctOrVerificationScript Account or verification script. Account needs to be the multi-sig account and not one of the public keys.
-   */
-  public static buildMultiSig(
-    tx: string,
-    sigs: (string | Witness)[],
-    acctOrVerificationScript: Account | string
-  ): Witness {
-    const verificationScript =
-      typeof acctOrVerificationScript === "string"
-        ? acctOrVerificationScript
-        : acctOrVerificationScript.contract.script;
+    /**
+     * Builds a multi-sig Witness object.
+     * @param tx Hexstring to be signed.
+     * @param sigs Unordered list of signatures.
+     * @param acctOrVerificationScript Account or verification script. Account needs to be the multi-sig account and not one of the public keys.
+     */
+    pub fn buildMultiSig(
+        &self,
+        tx: &str,
+        sigs: &[Witness],
+        acctOrVerificationScript: &str,
+    ) -> Witness {
+        let verificationScript =
+        typeof acctOrVerificationScript == "string"
+            ?
+        acctOrVerificationScript
+            : acctOrVerificationScript.contract.script;
 
-    const publicKeys = getPublicKeysFromVerificationScript(verificationScript);
-    const orderedSigs = Array(publicKeys.length).fill("");
-    sigs.forEach((element) => {
-      if (typeof element === "string") {
-        const position = publicKeys.findIndex((key) =>
-          verify(tx, element, key)
+        let publicKeys = getPublicKeysFromVerificationScript(verificationScript);
+        let orderedSigs = Array(publicKeys.len()).fill("");
+
+        sigs.forEach((element) => {
+            if (typeof element == = "string") {
+                let position = publicKeys.findIndex((key) =>
+                verify(tx, element, key)
+                );
+
+                if position == -1 {
+                    panic!("Invalid signature given: $ { element }");
+                }
+
+                orderedSigs[position] = element;
+
+            } else if (element
+            instanceof
+            Witness) {
+                let keys = getPublicKeysFromVerificationScript(
+                    element.verificationScript
+                );
+
+                if (keys.len() != = 1) {
+                    throw
+                    new
+                    Error("Given witness contains more than 1 public key!");
+                }
+
+                let position = publicKeys.indexOf(keys[0]);
+
+                orderedSigs[position] = getSignaturesFromInvocationScript(
+                    element.invocationScript
+                )[0];
+            } else {
+                throw
+                new
+                Error("Unable to process given signature");
+            }
+        });
+
+        let signingThreshold = getSigningThresholdFromVerificationScript(
+            verificationScript
         );
-        if (position === -1) {
-          throw new Error(`Invalid signature given: ${element}`);
+
+        let validSigs = orderedSigs.filter((s) => s != = "");
+
+        if (validSigs.len() < signingThreshold) {
+            throw
+            new
+            Error(
+            `Insufficient
+            signatures: expected $ { signingThreshold }
+            but
+            got $ { validSigs.len() }
+            instead`
+            );
         }
-        orderedSigs[position] = element;
-      } else if (element instanceof Witness) {
-        const keys = getPublicKeysFromVerificationScript(
-          element.verificationScript
-        );
-        if (keys.length !== 1) {
-          throw new Error("Given witness contains more than 1 public key!");
+
+        Witness {
+            invocationScript: validSigs
+                .slice(0, signingThreshold)
+                .map((s) => "40" + s)
+            .join(""),
+            verificationScript,
         }
-        const position = publicKeys.indexOf(keys[0]);
-        orderedSigs[position] = getSignaturesFromInvocationScript(
-          element.invocationScript
-        )[0];
-      } else {
-        throw new Error("Unable to process given signature");
-      }
-    });
-    const signingThreshold = getSigningThresholdFromVerificationScript(
-      verificationScript
-    );
-    const validSigs = orderedSigs.filter((s) => s !== "");
-    if (validSigs.length < signingThreshold) {
-      throw new Error(
-        `Insufficient signatures: expected ${signingThreshold} but got ${validSigs.length} instead`
-      );
     }
-    return new Witness({
-      invocationScript: validSigs
-        .slice(0, signingThreshold)
-        .map((s) => "40" + s)
-        .join(""),
-      verificationScript,
-    });
-  }
 
-  public invocationScript: string;
-  public verificationScript: string;
 
-  // tslint:disable-next-line:variable-name
-  private _scriptHash = "";
-
-  public constructor(obj: WitnessLike) {
-    if (
-      !obj ||
-      obj.invocationScript === undefined ||
-      obj.verificationScript === undefined
-    ) {
-      throw new Error(
-        "Witness requires invocationScript and verificationScript fields"
-      );
+    pub fn get_scriptHash(&self) -> &str {
+        if self._scriptHash {
+            self._scriptHash;
+        } else if (self.verificationScript) {
+            self._scriptHash = reverseHex(hash160(self.verificationScript));
+            return self._scriptHash;
+        } else {
+            throw
+            new
+            Error(
+                "Unable to produce scriptHash from empty verificationScript"
+            );
+        }
     }
-    this.invocationScript = obj.invocationScript;
-    this.verificationScript = obj.verificationScript;
-  }
 
-  public get scriptHash(): string {
-    if (this._scriptHash) {
-      return this._scriptHash;
-    } else if (this.verificationScript) {
-      this._scriptHash = reverseHex(hash160(this.verificationScript));
-      return this._scriptHash;
-    } else {
-      throw new Error(
-        "Unable to produce scriptHash from empty verificationScript"
-      );
+    pub fn set_scriptHash(&mut self, value:&str)->&self {
+    if self.verificationScript {
+    panic!("Unable to set scriptHash when verificationScript is not empty");
     }
-  }
-
-  public set scriptHash(value) {
-    if (this.verificationScript) {
-      throw new Error(
-        "Unable to set scriptHash when verificationScript is not empty"
-      );
+    self._scriptHash = Option::from(value);
     }
-    this._scriptHash = value;
-  }
 
-  public serialize(): string {
-    const invoLength = num2VarInt(this.invocationScript.length / 2);
-    const veriLength = num2VarInt(this.verificationScript.length / 2);
-    return (
-      invoLength + this.invocationScript + veriLength + this.verificationScript
-    );
-  }
+    fn generateScriptHash(&mut self) {
 
-  public export(): WitnessLike {
-    return {
-      invocationScript: this.invocationScript,
-      verificationScript: this.verificationScript,
-    };
-  }
+        self._scriptHash = reverseHex(hash160(&self.verificationScript.clone().as_bytes()));
+    }
 
-  public equals(other: WitnessLike): boolean {
-    return (
-      this.invocationScript === other.invocationScript &&
-      this.verificationScript === other.verificationScript
-    );
-  }
-
-  private generateScriptHash(): void {
-    this._scriptHash = reverseHex(hash160(this.verificationScript));
-  }
 }
-
-export default Witness;

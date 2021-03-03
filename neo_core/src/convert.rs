@@ -7,13 +7,14 @@ use neo_crypto::hex;
 use std::io::Error;
 use std::convert::TryInto;
 use std::str;
+use std::num::ParseIntError;
 
 /**
  * @param buf ArrayBuffer
  * @returns ASCII string
  */
-pub fn ab2str(buf:&[u8])->&str {
-  str::from_utf8(buf).unwrap()
+pub fn ab2str(buf: &[u8]) -> &str {
+    str::from_utf8(buf).unwrap()
 }
 
 /**
@@ -28,46 +29,52 @@ pub fn str2ab(s: &str) -> &[u8] {
  * @param str HEX string
  * @returns
  */
-pub fn hexstring2ab(s: &str)-> Result<&[u8], Error> {
-  hex::decode(s).unwrap().try_into()
+pub fn hexstring2ab(s: &str) -> Result<&[u8], Error> {
+    hex::decode(s).unwrap().try_into()
 }
 
 /**
  * @param arr
  * @returns HEX string
  */
-pub fn ab2hexstring(arr: &[u8])->&str {
-  hex::encode(arr).as_str()
+pub fn ab2hexstring(arr: &[u8]) -> &str {
+    hex::encode(arr).as_str()
 }
 
 /**
  * @param str ASCII string
  * @returns HEX string
  */
-pub fn str2hex(s: &str)->&str {
- ab2hexstring(str2ab(s));
+pub fn str2hex(s: &str) -> &str {
+    ab2hexstring(str2ab(s));
 }
 
 /**
  * @param hexstring HEX string
  * @returns ASCII string
  */
-pub fn hexstring2str(hexstring: &str)->& str {
-
- ab2str(hexstring2ab(hexstring).unwrap());
-
+pub fn hexstring2str(hexstring: &str) -> &str {
+    ab2str(hexstring2ab(hexstring).unwrap());
 }
 
 /**
  * convert an integer to big endian hex and add leading zeros
  * @param num Integer.
  */
-pub fn int2hex(num:i32)->&str {
-let  h = num.toString(16);
-match h.len() % 2 {
-  1 => "0" + h,
-  0 => h,
+pub fn int2hex(num: i32) -> &str {
+    let h = num.toString(16);
+    match h.len() % 2 {
+        1 => "0" + h,
+        0 => h,
+    }
 }
+
+/**
+ * Converts a Fixed8 hex string to its original number
+ * @param fixed8hex number in Fixed8 representation
+ */
+pub fn hex2int(hex: &str) -> Result<i64, ParseIntError> {
+ i64::from_str_radix(hex, 16)
 }
 
 /**
@@ -90,17 +97,6 @@ pub fn num2fixed8(num: i32) -> fixed8 {
     fixed8(num as i64)
 }
 
-// /**
-//  * Converts a Fixed8 hex string to its original number
-//  * @param fixed8hex number in Fixed8 representation
-//  */
-// pub fn fixed82num(fixed8hex: fixed8)-> number {
-//   ensureHex(fixed8hex);
-//   if (fixed8hex === "") {
-//     return 0;
-//   }
-//   return Fixed8.fromReverseHex(fixed8hex).toNumber();
-// }
 
 /**
  * Converts a number to a variable length Int. Used for array length header
