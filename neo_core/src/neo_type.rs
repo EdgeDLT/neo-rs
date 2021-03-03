@@ -12,12 +12,12 @@ pub const SCRIPT_HASH_BIN_LEN: usize = 20;
 
 pub const SIGNATURE_BIN_LEN:usize = 32;
 
-pub type PublicKeyBin = [u8; PUBLIC_KEY_BIN_LEN];
-pub type PrivateKeyBin = [u8; PRIVATE_KEY_BIN_LEN];
-pub type AddressBin = [u8; ADDRESS_BIN_LEN];
-pub type WifKeyBin = [u8; WIF_KEY_BIN_LEN];
-pub type ScriptHashBin = [u8; SCRIPT_HASH_BIN_LEN];
-pub type SignatureBin = [u8; SIGNATURE_BIN_LEN];
+pub type PublicKeyBin<'a> = &'a[u8; PUBLIC_KEY_BIN_LEN];
+pub type PrivateKeyBin<'a> = &'a[u8; PRIVATE_KEY_BIN_LEN];
+pub type AddressBin<'a> = &'a[u8; ADDRESS_BIN_LEN];
+pub type WifKeyBin<'a> = &'a[u8; WIF_KEY_BIN_LEN];
+pub type ScriptHashBin<'a> = &'a[u8; SCRIPT_HASH_BIN_LEN];
+pub type SignatureBin<'a> = &'a[u8; SIGNATURE_BIN_LEN];
 
 pub type PublicKeyHex = &'static str;
 pub type PrivateKeyHex = &'static str;

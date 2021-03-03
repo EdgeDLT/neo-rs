@@ -13,9 +13,9 @@ use std::borrow::Borrow;
 use crate::neo_type::{PublicKeyBin, PrivateKeyBin, AddressHex, PRIVATE_KEY_BIN_LEN, WIF_KEY_BIN_LEN, PUBLIC_KEY_BIN_LEN};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct key_pair {
-    pub public_key: PublicKeyBin,
-    pub private_key: PrivateKeyBin,
+pub struct key_pair<'a> {
+    pub public_key: PublicKeyBin<'a>,
+    pub private_key: PrivateKeyBin<'a>,
     pub address: AddressHex,
 }
 
@@ -90,7 +90,6 @@ impl key_pair {
         cs.try_into()
     }
 
-
     pub fn get_key_pair_from_wif(&self, wif: &str) -> Result<Self, KeyPairError> {
         let pk: PrivateKeyBin = self.get_private_key_from_wif(wif).unwrap();
 
@@ -121,7 +120,7 @@ impl key_pair {
         let mut pk = [0u8; PRIVATE_KEY_BIN_LEN];
         pk.copy_from_slice(&data[1..33]);
 
-        Ok(pk)
+        Ok(&pk)
     }
 
 
@@ -174,8 +173,8 @@ impl fmt::Display for key_pair {
 
 impl Default for key_pair {
     fn default() -> Self { Self {
-        private_key: [0u8; PRIVATE_KEY_BIN_LEN],
-        public_key: [0u8; PUBLIC_KEY_BIN_LEN],
+        private_key: &[0u8; PRIVATE_KEY_BIN_LEN],
+        public_key: &[0u8; PUBLIC_KEY_BIN_LEN],
         address: "" } }
 }
 

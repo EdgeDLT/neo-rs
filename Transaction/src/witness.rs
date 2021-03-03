@@ -4,7 +4,7 @@
 //   getPublicKeysFromVerificationScript,
 //   getSignaturesFromInvocationScript,
 //   getSigningThresholdFromVerificationScript,
-//   getVerificationScriptFromPublicKey,
+//   get_verification_script_from_public_key,
 //   verify,
 // } from "../../wallet";
 
@@ -64,11 +64,12 @@ impl Transaction for Witness {
  * For example, the most common witness is the VM Script that pushes the ECDSA signature into the VM and calling CHECKSIG to prove the authority to spend the TransactionInputs in the transaction.
  */
 impl Witness {
+
     pub fn fromSignature(&self, sig: &str, publicKey: &str) -> Witness {
         let invocationScript = "40" + sig;
         let verificationScript = getVerificationScriptFromPublicKey(publicKey);
 
-        Witness { invocationScript, verificationScript }
+        Witness { invocationScript, verificationScript, _scriptHash: None }
     }
 
 
@@ -84,14 +85,13 @@ impl Witness {
         sigs: &[Witness],
         acctOrVerificationScript: &str,
     ) -> Witness {
-        let verificationScript =
-        typeof acctOrVerificationScript == "string"
-            ?
-        acctOrVerificationScript
-            : acctOrVerificationScript.contract.script;
+
+        let verificationScript =acctOrVerificationScript;
+
 
         let publicKeys = getPublicKeysFromVerificationScript(verificationScript);
-        let orderedSigs = Array(publicKeys.len()).fill("");
+
+        let orderedSigs = publicKeys.len()).fill("");
 
         sigs.forEach((element) => {
             if (typeof element == = "string") {

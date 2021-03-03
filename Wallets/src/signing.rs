@@ -13,6 +13,7 @@ use crate::verify::{isWIF};
 use crate::nep2;
 
 use neo_crypto::sha2::Digest;
+use neo_core::neo_type::{SignatureHex, PublicKeyHex};
 
 #[derive(Debug)]
 pub struct signing {}
@@ -22,8 +23,8 @@ impl signing {
      * Converts signatureHex to a signature object with r & s.
      */
     fn getSignatureFromHex(signatureHex: SignatureHex) -> {
-        r: BN;
-        s: BN
+        r: BigNum;
+        s: i64
     } {
     let signatureBuffer = hex.from(signatureHex);
 
