@@ -17,7 +17,6 @@ use std::iter::FromIterator;
  * @returns ASCII string
  */
 pub fn ab2str(buf: &[u8]) -> String {
-
     String::from(str::from_utf8(buf).unwrap())
 }
 
@@ -34,7 +33,6 @@ pub fn str2ab(s: &str) -> &[u8] {
  * @returns
  */
 pub fn hexstring2ab(s: &str) -> Result<Box<[u8]>, Error> {
-
     Ok(hex::decode(s).unwrap().into_boxed_slice())
 }
 
@@ -51,7 +49,6 @@ pub fn ab2hexstring(arr: &[u8]) -> String {
  * @returns HEX string
  */
 pub fn str2hex(s: &str) -> String {
-
     ab2hexstring(str2ab(s))
 }
 
@@ -60,7 +57,6 @@ pub fn str2hex(s: &str) -> String {
  * @returns ASCII string
  */
 pub fn hexstring2str(hexstring: &str) -> String {
-
     let h = hex::decode(hexstring).unwrap();
     let v = str::from_utf8(h.as_slice()).unwrap();
 
@@ -81,7 +77,7 @@ pub fn int2hex(num: i32) -> String {
  * @param fixed8hex number in Fixed8 representation
  */
 pub fn hex2int(hex: &str) -> Result<i64, ParseIntError> {
- i64::from_str_radix(hex, 16)
+    i64::from_str_radix(hex, 16)
 }
 
 /**
@@ -111,11 +107,37 @@ pub fn num2fixed8(num: i64) -> fixed8 {
  * @returns hexstring of int.
  */
 pub fn num2VarInt(num: i64) -> String {
-
     match num {
         d if d < 0xfd => num2hexstring(num),
         d if d <= 0xffff => format!("fd{}", num2hexstring(num)),
-        d if d <= 0xffffffff => format!("fe{}",num2hexstring(num)),
-        _ => format!("ff{}",num2hexstring(num)),
+        d if d <= 0xffffffff => format!("fe{}", num2hexstring(num)),
+        _ => format!("ff{}", num2hexstring(num)),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::convert::{ab2str, str2ab, int2hex};
+
+    #[test]
+    pub fn test_ab2str() {
+        let v: Vec<u8> = vec![0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64]; //helloworld
+        let s = ab2str(&v);
+        assert_eq!(s, "hello world");
+    }
+
+    #[test]
+    pub fn test_str2ab() {
+        let s = "hello world";
+        let v = str2ab(s);
+        assert_eq!(v, [0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64]);
+    }
+
+    #[test]
+    pub fn test_int2hex(){
+        let i =92233720;
+        let h = int2hex(i).to_lowercase();
+
+        assert_eq!(h, "57F5FF8".to_lowercase())
     }
 }

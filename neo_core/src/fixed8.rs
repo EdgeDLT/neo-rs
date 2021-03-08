@@ -5,9 +5,15 @@ use std::fmt;
 use std::fmt::Error;
 use crate::misc::reverseHex;
 
-#[derive(Clone,Debug,Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct fixed8(pub i64);
 
+/**
+ * A fixed8 point notation used widely in the NEO system for representing decimals.
+ * It is basically a hexideciaml integer that is divided by the 10^8.
+ * Supports up to 8 decimals and is 8 bytes long.
+ * @extends BN
+ */
 impl fixed8 {
     pub const DECIMALS: i64 = 100000000;
 
@@ -29,22 +35,14 @@ impl fixed8 {
 
     // The minimum Fixed8 is obtained by dividing 0x8000000000000000 (= -9223372036854775808) with 10^8.
     pub const MIN_VALUE: fixed8 = fixed8(fixed8::MIN_FIXED8_HEX / fixed8::DECIMALS);
-}
 
-/**
- * A fixed8 point notation used widely in the NEO system for representing decimals.
- * It is basically a hexideciaml integer that is divided by the 10^8.
- * Supports up to 8 decimals and is 8 bytes long.
- * @extends BN
- */
-impl fixed8 {
 
-    pub fn from_hex(&self, hex: &str) -> Result<fixed8, Error> {
+    pub fn from_hex(hex: &str) -> Result<fixed8, Error> {
         Ok(fixed8(i64::from_str_radix(hex, 16).unwrap()))
     }
 
-    pub fn from_reverse_hex(&self, hex: &str) -> Result<fixed8, Error> {
-        self.from_hex(reverseHex(hex).as_str())
+    pub fn from_reverse_hex(hex: &str) -> Result<fixed8, Error> {
+        fixed8::from_hex(reverseHex(hex).as_str())
     }
 
     /**
@@ -58,7 +56,7 @@ impl fixed8 {
      * Returns a Fixed8 whose value is rounded upwards to the next whole fixed8.
      */
     pub fn ceil(&self) -> fixed8 {
-            self.clone()
+        self.clone()
         // fixed8(super.decimalPlaces(0, BN.ROUND_CEIL));
     }
 
@@ -94,7 +92,7 @@ impl fixed8 {
      * @alias div
      */
     pub fn divided_by(&self, n: &fixed8) -> fixed8 {
-        fixed8(self.0/n.0)
+        fixed8(self.0 / n.0)
     }
 
     pub fn div(&self, n: &fixed8) -> fixed8 {
@@ -143,5 +141,30 @@ impl fmt::UpperHex for fixed8 {
         let val = self.0;
 
         fmt::UpperHex::fmt(&val, f) // delegate to i32's implementation
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::fixed8::fixed8;
+
+    #[test]
+    pub fn test_from_hex() {
+        let val = fixed8::from_hex("7fffffffffffffff").unwrap();
+        assert_eq!(val.0, 0x7fffffffffffffff);
+    }
+
+    #[test]
+    pub fn test_equals() {
+        let val_1 = fixed8::from_hex("7fffffffffffffff").unwrap();
+        let val_2 = fixed8(9223372036854775807);
+        assert_eq!(val_1.equals(&val_2), true);
+    }
+
+    #[test]
+    pub fn test_divide() {
+        let val_1 = fixed8::from_hex("7fffffffffffffff").unwrap();
+        let val_2 = val_1.div(&fixed8(922337203));
+        assert_eq!(val_2.0, 10000000007);
     }
 }

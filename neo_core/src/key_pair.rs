@@ -145,8 +145,7 @@ impl KeyPair {
         Ok(pk)
     }
 
-
-    pub fn get_wif_from_private_key(&self, pri_key: &[u8]) -> Result<String, Error> {
+    pub fn get_wif_from_private_key(pri_key: &[u8]) -> Result<String, Error> {
         let mut wif = [0u8; WIF_KEY_BIN_LEN];
         wif[0] = 0x80;
         wif[33] = 0x01;
@@ -184,7 +183,7 @@ impl KeyPair {
 
 impl fmt::Display for KeyPair {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let wif = self.get_wif_from_private_key(&self.private_key).unwrap();
+        let wif = KeyPair::get_wif_from_private_key(&self.private_key).unwrap();
         write!(f, "Public Key:\t 0x{}\nPrivate Key:\t 0x{}\nWIF:\t\t {}\nAddress:\t {}",
                &hex::encode(&self.public_key),
                &hex::encode(&self.private_key),
@@ -288,6 +287,6 @@ mod tests {
         let pub_key = hex::decode(public_key).unwrap();
         let addr = KeyPair::get_address_from_public_key(&pub_key).unwrap();
         assert_eq!(addr, "AHV5J1bVXAvM3eVDrCXx34U1QQnNKeKX1F");
-
     }
+
 }

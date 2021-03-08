@@ -156,6 +156,22 @@ mod tests {
         assert_eq!(num, 11052)
     }
 
+    #[test]
+    pub fn test_read_var_bytes() {
+        let temp = "fd04004e815dd71004ff";
+         let mut ss = StringStream::new(temp);
+        let bytes = ss.readVarBytes();
 
+        assert_eq!(bytes, "4e815dd7");
+    }
+
+    #[test]
+    pub fn test_read(){
+         let temp = "fd04004e815dd71004ff";
+         let mut ss = StringStream::new(temp);
+        let bytes = ss.read(5);
+
+        assert_eq!(bytes, "fd04004e81");
+    }
 }
 
