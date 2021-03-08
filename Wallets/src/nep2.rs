@@ -14,21 +14,23 @@ use neo_crypto::{ecdsa::{CipherSuite, ecdsa, ECECDSA},
                  }};
 
 use neo_core::{neo_type, PrivateKeyHex, PrivateKeyBin, SCRYPT_DK_LEN, SCRYPT_LOG_N, SCRYPT_R, SCRYPT_P, NEP_HEADER_1, NEP_HEADER_2, NEP_FLAG};
-use neo_core::key_pair;
+use neo_core::KeyPair;
+use neo_core::neo_type::{PrivateKeyHex, PrivateKeyBin};
+use neo_core::consts::{SCRYPT_DK_LEN, SCRYPT_LOG_N, SCRYPT_R, SCRYPT_P, NEP_HEADER_1, NEP_HEADER_2, NEP_FLAG};
 
 pub struct nep2 {}
 
 impl nep2 {
 
-    pub fn get_nep2_from_key_pair() {}
+    pub fn get_nep2_from_KeyPair() {}
 
     pub fn get_nep2_from_private_key(pri_key: &PrivateKeyHex, passphrase: &str) -> Result<&str, Error> {
 
         let private_key: &PrivateKeyBin = pri_key.as_bytes() as &PrivateKeyBin;
 
-        let key_pair = key_pair::get_key_pair_from_private_key(private_key);
+        let KeyPair = KeyPair::get_KeyPair_from_private_key(private_key);
 
-        let mut addresshash: [u8; 4] = key_pair.get_addr_hash_from_address();
+        let mut addresshash: [u8; 4] = KeyPair.get_addr_hash_from_address();
 
         let mut result = vec![0u8; SCRYPT_DK_LEN];
         let params = Params::new(SCRYPT_LOG_N, SCRYPT_R, SCRYPT_P).unwrap();
@@ -113,11 +115,11 @@ impl nep2 {
         // decrypted = cipher.decrypt(encrypted)
         // private_key = xor_bytes(decrypted, derived1)
 
-        let key_pair = key_pair::key_pair::get_key_pair_from_private_key(pri_key.as_ref());
-        let mut kp_addresshash: [u8; 4] = key_pair.get_addr_hash_from_address();
+        let KeyPair = KeyPair::KeyPair::get_KeyPair_from_private_key(pri_key.as_ref());
+        let mut kp_addresshash: [u8; 4] = KeyPair.get_addr_hash_from_address();
 
         // # Now check that the address hashes match. If they don't, the password was wrong.
-        // kp_new = key_pair(priv_key=private_key)
+        // kp_new = KeyPair(priv_key=private_key)
         // kp_new_address = kp_new.get_address()
         // kp_new_address_hash_tmp = hashlib.sha256(kp_new_address.encode("utf-8")).digest()
         // kp_new_address_hash_tmp2 = hashlib.sha256(kp_new_address_hash_tmp).digest()
@@ -125,6 +127,6 @@ impl nep2 {
         if kp_addresshash != address_hash {
             println!("Wrong Passphrase");
         }
-        Ok(hex::encode(pri_key))
+        Ok(hex::encode(pri_key).as_str())
     }
 }

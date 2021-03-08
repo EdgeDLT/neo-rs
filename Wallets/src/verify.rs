@@ -1,7 +1,10 @@
-use neo_crypto::{base58::FromBase58, hex, sha2::Digest};
-use neo_core::key_pair;
+use neo_crypto::{base58::FromBase58, hex, sha2, sha2::Digest};
+use neo_core::KeyPair;
 use std::io;
 use regex::Regex;
+use neo_core::convert::hex2int;
+use crate::core::getPublicKeyUnencoded;
+use neo_core::misc::reverseHex;
 
 #[derive(Debug)]
 pub struct verify {}
@@ -34,7 +37,8 @@ impl verify {
         if wif.len() != 52 {
             false
         }
-        let hexStr = hex::encode(wif.from_base58().unwrap());
+
+        let mut hexStr = hex::encode(wif.from_base58().unwrap()).as_str().as_bytes();
 
         let shaChecksum = &sha2::Sha256::digest(&hexStr[0..hexStr.len() - 8])[0..8];
         shaChecksum == &hexStr[hexStr.len() - 8..8]
@@ -53,16 +57,15 @@ impl verify {
      * @param key
      * @param  encoded Optional parameter to specify for a specific form. If this is omitted, this function will return true for both forms. If this parameter is provided, this function will only return true for the specific form.
      */
-    pub fn isPublicKey(encodedKey: &str) -> bool {
-        let unencoded = getPublicKeyUnencoded(encodedKey);
-        let tail = hex2int(unencoded.substr(unencoded.len() - 2, 2), 16);
-        if (encodedKey[0..2] == "02" && tail % 2 == 0) ||
-            (encodedKey[0..2] == "03" && tail % 2 == 1) {
-            true
-        }
-
-        false
-    }
+    // pub fn isPublicKey(encodedKey: &str) -> bool {
+    //     let unencoded = getPublicKeyUnencoded(encodedKey);
+    //     let tail = hex2int(unencoded.substr(unencoded.len() - 2, 2), 16);
+    //     if (encodedKey[0..2] == "02" && tail % 2 == 0) ||
+    //         (encodedKey[0..2] == "03" && tail % 2 == 1) {
+    //         true
+    //     }
+    //     false
+    // }
 
     /**
      * Verifies if &str is a scripthash. Any 20 byte hex&str is a valid scriptHash.

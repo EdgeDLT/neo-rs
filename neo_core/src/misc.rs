@@ -7,9 +7,9 @@ use neo_crypto::hex;
  * @param str2 HEX string
  * @returns XOR output as a HEX string
  */
-pub fn hexXor(str1: &str, str2: &str) -> Result<&str, Error> {
+pub fn hexXor<'a>(str1: &'a str, str2: &'a str) -> Result<String, Error> {
     if str1.len() != str2.len() {
-        Err(())
+        ()
     }
 
     let mut v1 = hex::decode(str1).unwrap();
@@ -19,7 +19,7 @@ pub fn hexXor(str1: &str, str2: &str) -> Result<&str, Error> {
         v1[i] = v1[i]^v2[i];
     }
 
-    Ok(hex::encode(v1).as_str())
+    Ok(hex::encode(v1))
 }
 
 
@@ -28,16 +28,11 @@ pub fn hexXor(str1: &str, str2: &str) -> Result<&str, Error> {
  * @example
  * reverseArray('abcd') = 'cdba'
  */
-pub fn reverseArray<T>(arr: &[T]) -> Result<&[T], Error> {
-    let sz = arr.len();
-    if sz == 0 { Err(()) }
+pub fn reverseArray<T>(arr: &mut [T]) -> Result<&[T], Error> {
 
-    let mut result = [sz; T];
+    arr.reverse();
+    Ok(arr)
 
-    for i in 0..sz {
-        result[i] = &arr[sz - 1 - i];
-    }
-    Ok(&result)
 }
 
 /**
@@ -45,12 +40,41 @@ pub fn reverseArray<T>(arr: &[T]) -> Result<&[T], Error> {
  * @example
  * reverseHex('abcdef') = 'efcdab'
  */
-pub fn reverseHex(hex: &str) -> Result<&str, Error> {
-    let mut out = "";
+pub fn reverseHex(hex: &str) -> String {
 
-    for i in (0..hex.len() - 2).rev().step_by(2) {
-        out += &hex[i..i + 2];
+    let mut value = hex::decode(hex).unwrap();
+    value.reverse();
+
+    hex::encode(value)
+}
+
+
+#[cfg(test)]
+mod tests {
+    use crate::misc::{reverseArray, reverseHex, hexXor};
+
+    #[test]
+    pub fn test_reverse_arr(){
+        let mut arr = ['a','b','c','d'];
+         reverseArray(&mut arr);
+        assert_eq!(arr[0], 'd');
     }
 
-    OK(out)
+    #[test]
+    pub fn test_reverse_hex(){
+
+        let rev = reverseHex("fd2c2b");
+        assert_eq!("2b2cfd", rev);
+    }
+
+    #[test]
+    pub fn test_hex_xor(){
+        let hex_1 = "fd2c2b414e81";
+        let hex_2 = "dd71004ffc93";
+
+        let res =  hexXor(&hex_1,&hex_2).unwrap();
+
+        assert_eq!(res,"205d2b0eb212")
+
+    }
 }

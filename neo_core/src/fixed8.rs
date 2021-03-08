@@ -6,20 +6,20 @@ use std::fmt::Error;
 use crate::misc::reverseHex;
 
 #[derive(Clone,Debug,Eq, PartialEq)]
-pub struct fixed8(i64);
+pub struct fixed8(pub i64);
 
 impl fixed8 {
-    pub const DECIMALS: i32 = 100000000;
+    pub const DECIMALS: i64 = 100000000;
 
-    // This is the maximum hex integer 0x7fffffffffffffff (= 9223372036854775807)
+    // self is the maximum hex integer 0x7fffffffffffffff (= 9223372036854775807)
     // that can be converted to Fixed8 by dividing by the 10^8.
     pub const MAX_FIXED8_HEX: i64 = i64::MAX;
 
-    // This is the minimum hex integer 0x8000000000000000 (= -9223372036854775808)
+    // self is the minimum hex integer 0x8000000000000000 (= -9223372036854775808)
     // that can be converted to Fixed8 by dividing by the 10^8.
     pub const MIN_FIXED8_HEX: i64 = i64::MIN;
 
-    // Total fixed8 of Fixed8 available. This includes negative and positive
+    // Total fixed8 of Fixed8 available. self includes negative and positive
     // Fixed8 fixed8s.
     pub const TOTAL_FIXED8_HEX: u64 = u64::MAX;
 
@@ -32,46 +32,48 @@ impl fixed8 {
 }
 
 /**
- * A fixed point notation used widely in the NEO system for representing decimals.
+ * A fixed8 point notation used widely in the NEO system for representing decimals.
  * It is basically a hexideciaml integer that is divided by the 10^8.
  * Supports up to 8 decimals and is 8 bytes long.
  * @extends BN
  */
-impl Fixed8 {
+impl fixed8 {
 
     pub fn from_hex(&self, hex: &str) -> Result<fixed8, Error> {
-        Ok(fixed8(i64::from_str_radix(hex, 16)?))
+        Ok(fixed8(i64::from_str_radix(hex, 16).unwrap()))
     }
 
     pub fn from_reverse_hex(&self, hex: &str) -> Result<fixed8, Error> {
-        this.fromHex(reverseHex(hex))
+        self.from_hex(reverseHex(hex).as_str())
     }
 
     /**
      * Returns a raw fixed8 represetation of Fixed8.
      */
     pub fn to_raw_fixed8(&self) -> Result<fixed8, Error> {
-        Ok(self.0 * fixed8::DECIMALS as fixed8)
+        Ok(fixed8(self.0 * fixed8::DECIMALS))
     }
 
     /**
      * Returns a Fixed8 whose value is rounded upwards to the next whole fixed8.
      */
     pub fn ceil(&self) -> fixed8 {
-        fixed8(super.decimalPlaces(0, BN.ROUND_CEIL));
+            self.clone()
+        // fixed8(super.decimalPlaces(0, BN.ROUND_CEIL));
     }
 
     /**
      * Returns a Fixed8 whose value is rounded downwards to the previous whole fixed8.
      */
     pub fn floor(&self) -> fixed8 {
-        fixed(super.decimalPlaces(0, BN.ROUND_FLOOR));
+        self.clone()
+        // fixed8(super.decimalPlaces(0, BN.ROUND_FLOOR));
     }
 
     /**
      * Returns true if the value is equivalent.
      */
-    pub fn equals(&self, other: fixed8) -> bool {
+    pub fn equals(&self, other: &fixed8) -> bool {
         self.0 == other.0
     }
 
@@ -84,54 +86,54 @@ impl Fixed8 {
      * @return {Fixed8}
      */
     // pub fn round(&self, dp = 0, rm?: BN.RoundingMode) -> fixed8 {
-    //     fixed(super.decimalPlaces(dp, rm));
+    //     fixed8(super.decimalPlaces(dp, rm));
     // }
 
     /**
-     * Returns a Fixed8 whose value is the value of this Fixed8 divided by `n`
+     * Returns a Fixed8 whose value is the value of self Fixed8 divided by `n`
      * @alias div
      */
-    pub fn divided_by(&self, n: fixed8) -> fixed8 {
-        fixed(self.0/n)
+    pub fn divided_by(&self, n: &fixed8) -> fixed8 {
+        fixed8(self.0/n.0)
     }
 
-    pub fn div(&self, n: fixed8) -> fixed8 {
+    pub fn div(&self, n: &fixed8) -> fixed8 {
         self.divided_by(n)
     }
 
     /**
-     * Returns a Fixed8 whose value is the value of this Fixed8 multipled by `n`
+     * Returns a Fixed8 whose value is the value of self Fixed8 multipled by `n`
      * @alias mul
      */
-    pub fn times(&self, n: fixed8) -> fixed8 {
+    pub fn times(&self, n: &fixed8) -> fixed8 {
         self.mul(n)
     }
 
-    pub fn mul(&self, n: fixed8) -> fixed8 {
-        fixed(self.0 * n.0)
+    pub fn mul(&self, n: &fixed8) -> fixed8 {
+        fixed8(self.0 * n.0)
     }
 
     /**
-     * Returns a Fixed8 whose value is the value of this Fixed8 plus `n`
+     * Returns a Fixed8 whose value is the value of self Fixed8 plus `n`
      * @alias add
      */
-    pub fn plus(&self, n: fixed8) -> fixed8 {
-        fixed(self.0 + n.0)
+    pub fn plus(&self, n: &fixed8) -> fixed8 {
+        fixed8(self.0 + n.0)
     }
 
-    pub fn add(&self, n: fixed8) -> fixed8 {
+    pub fn add(&self, n: &fixed8) -> fixed8 {
         self.plus(n)
     }
 
     /**
-     * Returns a Fixed8 whose value is the value of this Fixed8 minus `n`
+     * Returns a Fixed8 whose value is the value of self Fixed8 minus `n`
      * @alias sub
      */
-    pub fn minus(&self, n: fixed8) -> fixed8 {
-        fixed(self.0 - n)
+    pub fn minus(&self, n: &fixed8) -> fixed8 {
+        fixed8(self.0 - n.0)
     }
 
-    pub fn sub(&self, n: fixed8) -> fixed8 {
+    pub fn sub(&self, n: &fixed8) -> fixed8 {
         self.minus(n)
     }
 }

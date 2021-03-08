@@ -3,10 +3,10 @@
 use std::io::Error;
 use crate::misc::reverseHex;
 
-#[derive(Debug,Clone,Hash,Eq, PartialEq)]
+#[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub struct StringStream {
     pub s: &'static str,
-    pub pter: u32,
+    pub pter: usize,
 }
 
 /**
@@ -17,7 +17,7 @@ impl StringStream {
     /**
      * Initializes the stream with given string and pointer at position 0.
      */
-    pub fn new(str: &str) -> StringStream {
+    pub fn new(str: &'static str) -> StringStream {
         Self {
             s: str.clone(),
             pter: 0,
@@ -33,7 +33,7 @@ impl StringStream {
      * ss.isEmpty(); // true
      */
     pub fn isEmpty(&self) -> bool {
-        self.pter >= self.s.len() as u32
+        self.pter >= self.s.len()
     }
 
     /**
@@ -43,12 +43,16 @@ impl StringStream {
      * ss.peek();  // "01"
      * ss.peek(5); // "0102"
      */
-    pub fn peek(&self, bytes: u32) -> Result<String, Error> {
+    pub fn peek(&self, bytes: u32) -> String {
         if self.isEmpty() {
-            Err(())
+            ()
         }
 
-        Ok(self.s[self.pter..self.pter + bytes * 2])
+        let from = self.pter as usize;
+        let to = (self.pter + (bytes as usize) * 2) as usize;
+
+
+        String::from(&self.s[from..to])
     }
 
     /**
@@ -59,39 +63,43 @@ impl StringStream {
      * ss.read(); // "01"
      * ss.read(2); // "0203"
      */
-    pub fn read(&mut self, bytes: u32) -> Result<String, Error> {
+    pub fn read(&mut self, bytes: usize) -> String {
         if self.isEmpty() {
-            Err(())
-        }
-        let out = self.s[self.pter..self.pter + bytes * 2];
+            ()
+        };
+
+        let to = (self.pter + bytes * 2) as usize;
+        let out = &self.s[self.pter..to];
 
         self.pter = self.pter + bytes * 2;
 
-        Ok(out)
+        String::from(out)
     }
 
     /**
      * Reads some bytes off the stream.
      * A variable-length integer is first read off the stream and then bytes equal to the integer is read off and returned.
      */
-    pub fn readVarBytes(&mut self) -> Result<String, Error> {
-        self.read(self.readVarInt()?)
+    pub fn readVarBytes(&mut self) -> String {
+        let len = self.readVarInt() as usize;
+        self.read(len)
     }
 
     /**
      * Reads an integer of variable bytelength. May consume up to 9 bytes.
      * The first byte read indicates if more bytes need to be read off.
      */
-    pub fn readVarInt(&mut self) -> Result<u32, Error> {
-        let mut len = i32::from_str_radix(self.read(1)?.as_str(), 16)?;
+    pub fn readVarInt(&mut self) -> i32 {
+
+        let mut len = i32::from_str_radix(self.read(1).as_str(), 16).unwrap();
 
         match len {
-            0xfd => len = i32::from_str_radix(reverseHex(self.read(2)?.as_str())?, 16)?,
-            0xfe => len = i32::from_str_radix(reverseHex(self.read(4)?.as_str())?, 16)?,
-            0xff => len = i32::from_str_radix(reverseHex(self.read(8)?.as_str())?, 16)?,
+            0xfd => len = i32::from_str_radix(reverseHex(self.read(2).as_str()).as_str(), 16).unwrap(),
+            0xfe => len = i32::from_str_radix(reverseHex(self.read(4).as_str()).as_str(), 16).unwrap(),
+            0xff => len = i32::from_str_radix(reverseHex(self.read(8).as_str()).as_str(), 16).unwrap(),
             _ => unreachable!()
         }
-        Ok(len as u32)
+        len
     }
 
     /**
@@ -112,15 +120,42 @@ impl StringStream {
      */
     pub fn context(&mut self) {
         let before = match self.pter > 10 {
-            true => { &self.s[self.pter - 10..self.pter] }
+            true => {
+                let from = self.pter - 10;
+                &self.s[from..self.pter]
+            }
+
             false => { &self.s[0..self.pter] }
         };
 
-        let current = self.read(1)?;
-        let after = self.peek(5)?;
+        let current = self.read(1);
+        let after = self.peek(5);
         self.pter = self.pter - 2;
 
         println!("$before => {} | $current => {:?}| $after => {:?}", before, current, after);
-        // return `${before}|${current}|${after}`;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::stringstream::StringStream;
+    use crate::misc::reverseHex;
+
+    const hx: &str = "fd2c2b414e815dd71004ffc93367ec53fe0617439d927dbf9aab771354c50f568f8ebd8585a7c88ba99ca2aa6e1aa7d830c7cf546fddfdf49dee2de7bd52fb6bac";
+
+    #[test]
+    pub fn test_create_new_ss() {
+        let mut ss = StringStream::new(hx);
+        assert_eq!(ss.s, hx);
+    }
+
+    #[test]
+    pub fn test_read_int() {
+        let mut ss = StringStream::new(hx);
+         let num = ss.readVarInt();
+        assert_eq!(num, 11052)
+    }
+
+
+}
+

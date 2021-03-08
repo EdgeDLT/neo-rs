@@ -1,3 +1,4 @@
+#![feature(array_methods)]
 //! # Model
 //!
 //! A neo_core for cryptocurrency wallets.
@@ -20,8 +21,8 @@ pub mod no_std;
 pub mod utilities;
 pub use self::utilities::*;
 
-pub mod neo_type
-;
+pub mod neo_type;
+
 pub mod key_pair;
 pub use self::key_pair::*;
 
@@ -31,4 +32,4 @@ pub mod stringstream;
 pub mod consts;
 pub mod convert;
 
-// pub use self::key_pair::*;
+// pub use self::KeyPair::*;

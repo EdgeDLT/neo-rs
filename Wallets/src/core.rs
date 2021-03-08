@@ -15,13 +15,7 @@ use neo_crypto::sha2::Digest;
  * NEP2 methods are found within NEP2 standard.
  * All methods take in Big-Endian strings and return Big-Endian strings.
  */
-// import base58 from "bs58";
-// import { Buffer } from "buffer";
-// import WIF from "wif";
-// import { ADDR_VERSION } from "../lets";
-// import { ab2hexstring, hash160, hash256, hexstring2ab, reverseHex } from "../u";
-// import { generateRandomArray } from "../u/random";
-// import { curve, sign } from "./signing";
+
 
 /**
  * Encodes a public key.

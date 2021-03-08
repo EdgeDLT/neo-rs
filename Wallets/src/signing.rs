@@ -1,19 +1,17 @@
-// import BN from "bn.js";
-// import { ec as EC } from "elliptic";
-// import { sha256 } from "../u";
-// import { getPrivateKeyFromWIF, getPublicKeyUnencoded } from "./core";
-// import { isPublicKey, isWIF } from "./verify";
-// 
-// export let curve = new EC("p256");
+use openssl::{
+    bn::{BigNum, BigNumContext},
+    error::ErrorStack,
+};
 
-use neo_core::{neo_type, SignatureHex, PublicKeyHex, key_pair};
-use neo_crypto::{ecdsa, hex,sha2};
+use neo_core::{neo_type, SignatureHex, PublicKeyHex, KeyPair};
+use neo_crypto::{hex, sha2};
 use std::io::Error;
-use crate::verify::{isWIF};
 use crate::nep2;
 
 use neo_crypto::sha2::Digest;
 use neo_core::neo_type::{SignatureHex, PublicKeyHex};
+use neo_crypto::ecdsa::{ECECDSA, CipherSuite, ecdsa};
+use std::fmt::{Display, Formatter};
 
 #[derive(Debug)]
 pub struct signing {}
@@ -22,15 +20,14 @@ impl signing {
     /**
      * Converts signatureHex to a signature object with r & s.
      */
-    fn getSignatureFromHex(signatureHex: SignatureHex) -> {
-        r: BigNum;
-        s: i64
-    } {
-    let signatureBuffer = hex.from(signatureHex);
+    fn get_signature_from_hex(&self, signatureHex: SignatureHex) -> (BigNum, BigNum) {
+        let signatureBuffer = hex::decode(signatureHex)?;
 
-    let r = new BN(signatureBuffer.slice(0, 32).to & str("hex"), 16, "be");
-    let s = new BN(signatureBuffer.slice(32).to & str("hex"), 16, "be");
-    return { r, s };
+        let r = BigNum::from_slice(&signatureBuffer[0..32])?;
+        // new BN(signatureBuffer.slice(0, 32).to & str("hex"), 16, "be");
+        let s = BigNum::from_slice(&signatureBuffer[32..signatureBuffer.len()])?;
+
+        (r, s)
     }
 
     /**
@@ -38,17 +35,16 @@ impl signing {
      * @param hex Hex&str to hash.
      * @param privateKey Hex&str or WIF format.
      */
-    pub fn sign(hex: &str, privateKey: &str) -> Result<SignatureHex, Error> {
-        // if isWIF(privateKey) {
-           let  privateKey = key_pair::key_pair::PrivateKeyFromWIF(privateKey);
-        // }
+    pub fn sign(&self, hex: &str, private_key: &str) -> Result<SignatureHex, Error> {
+        let mut pri_key = Vec::new();
+        match isWIF(private_key) {
+            true => pri_key = KeyPair::KeyPair::get_private_key_from_wif(private_key)?.to_vec(),
+            false => pri_key = hex::decode(private_key)?,
+        }
 
-        let msgHash = sha2::Sha256::digest(hex);
-        let msgHashHex = Buffer.from(msgHash, "hex");
-        let privateKeyBuffer = Buffer.from(privateKey, "hex");
-
-        let sig = curve.sign(msgHashHex, privateKeyBuffer);
-        return sig.r.to & str("hex", 32) + sig.s.to & str("hex", 32);
+        let msg = hex::decode(hex)?;
+        let mut ecdsa = ECECDSA::from_suite(CipherSuite::P256_SHA256_TAI).unwrap();
+        Ok(hex::encode(ecdsa.prove(&pri_key, &msg).unwrap()).as_str())
     }
 
     /**
@@ -57,18 +53,22 @@ impl signing {
      * @param sig ECDSA signature.
      * @param publicKey encoded/unencoded public key of the signing key.
      */
-    pub fn verify(hex: &str, sig: SignatureHex, publicKey: PublicKeyHex) -> bool {
+    pub fn verify(&self, hex: &str, sig: SignatureHex, publicKey: PublicKeyHex) -> bool {
+        let pubkey = hex::decode(publicKey).unwrap();
+        let msg = hex::decode(&hex)?;
+        let pi = hex::decode(&sig)?;
+        let mut ecdsa = ECECDSA::from_suite(CipherSuite::P256_SHA256_TAI).unwrap();
 
-    //  let pubkey = hex::decode(publicKey).unwrap();
-    //
-    //     let msg =
-    // let sigObj = getSignatureFromHex(sig);
-    //
-    // let messageHash = sha2::Sha256::digest(hex);
-    //
-    // let publicKeyBuffer = Buffer.from(publicKey, "hex");
-    //
-    // return curve.verify(messageHash, sigObj, publicKeyBuffer, "hex");
-        true
+        let beta = ecdsa.verify(&pubkey, &pi, &msg);
+
+        match beta {
+            Ok(beta) => {
+                println!("VRF proof is valid!\nHash output: {}", hex::encode(&beta));
+                true
+            }
+            Err(e) => {
+                false
+            }
+        }
     }
 }

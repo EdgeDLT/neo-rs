@@ -13,3 +13,6 @@ neo_crypto = { path = "../Cryptography"}
 neo_core = { path = "../neo_core"}
 
 num-bigint = "0.3.1"
+
+serde = { version = "1.0.124", default-features = false, features = ["derive"] }
+serde_json = { version = "1.0.62", default-features = false }

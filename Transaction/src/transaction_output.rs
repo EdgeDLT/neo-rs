@@ -1,4 +1,4 @@
-use neo_core::{stringstream::StringStream, key_pair::key_pair};
+use neo_core::{stringstream::StringStream, KeyPair::KeyPair};
 use neo_crypto::hex;
 use std::error::Error;
 use neo_core::misc::reverseHex;
@@ -24,7 +24,7 @@ impl TransactionOutput {
         address: &str,
     ) -> Result<TransactionOutput, Error> {
         let asset_id = get_asset_id_by_symbol(symbol)?;
-        let script_hash = key_pair::get_addr_hash_from_address(address)?;
+        let script_hash = KeyPair::get_addr_hash_from_address(address)?;
 
         Ok(
             TransactionOutput { asset_id, value, script_hash: hex::encode(script_hash).as_str() }

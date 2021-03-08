@@ -1,7 +1,7 @@
 use crate::cli::{flag, option, subcommand, types::*, CLIError, CLI};
 
 use crate::neo_core::nep2::nep2;
-use crate::neo_core::key_pair;
+use crate::neo_core::KeyPair;
 
 use clap::{ArgMatches, Values};
 use colored::*;
@@ -254,7 +254,7 @@ impl CLI for NeoCLI {
                 options.parse(arguments, &["createrawtransaction", "network", "signrawtransaction"]);
             }
             ("neo", Some(arguments)) => {
-                let kp = key_pair::key_pair::new();
+                let kp = KeyPair::KeyPair::new();
                 println!("{}",kp);
                 // println!("-----------");
                 // options.subcommand = Some("transaction".into());

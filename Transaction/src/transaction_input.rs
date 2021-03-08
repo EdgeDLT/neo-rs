@@ -1,4 +1,4 @@
-use neo_core::{stringstream::StringStream, key_pair::key_pair};
+use neo_core::{stringstream::StringStream, KeyPair::KeyPair};
 use neo_crypto::hex;
 use std::error::Error;
 use neo_core::misc::reverseHex;
@@ -24,7 +24,7 @@ impl transaction_param for TransactionInput {
         self.fromStream(ss)
     }
 
-    fn fromStream(&self, mut ss: StringStream) -> Result<TransactionInput, Error> {
+    fn fromStream(&self, ss: &mut StringStream) -> Result<TransactionInput, Error> {
         let prevHash = reverseHex(ss.read(32)?.as_str())?;
         let prevIndex = hex2int(reverseHex(ss.read(2)?.as_str())?)?;
         Ok(TransactionInput { prevHash, prevIndex: prevIndex as u32 })
