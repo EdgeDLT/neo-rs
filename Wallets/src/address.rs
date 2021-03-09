@@ -18,12 +18,12 @@ pub struct Address(String);
 
 impl Address {
     /// Returns the address corresponding to the given private key.
-    pub fn from_private_key(private_key: &Self::PrivateKey, _format: &Self::Format) -> Result<Self, AddressError> {
-        Self::from_public_key(&private_key.to_public_key(), _format)
+    pub fn from_private_key(private_key: &PrivateKey) -> Result<Self, AddressError> {
+        Self::from_public_key(&private_key.to_public_key())
     }
 
     /// Returns the address corresponding to the given public key.
-    pub fn from_public_key(public_key: &Self::PublicKey, _: &Self::Format) -> Result<Self, AddressError> {
+    pub fn from_public_key(public_key: &PublicKey) -> Result<Self, AddressError> {
         Ok(Self::checksum_address(public_key))
     }
 }
@@ -205,12 +205,12 @@ mod tests {
     use super::*;
 
     fn test_from_private_key(expected_address: &str, private_key: &PrivateKey) {
-        let address = Address::from_private_key(private_key, &Format::Standard).unwrap();
+        let address = Address::from_private_key(private_key).unwrap();
         assert_eq!(expected_address, address.to_string());
     }
 
     fn test_from_public_key(expected_address: &str, public_key: &PublicKey) {
-        let address = Address::from_public_key(public_key, &Format::Standard).unwrap();
+        let address = Address::from_public_key(public_key).unwrap();
         assert_eq!(expected_address, address.to_string());
     }
 
@@ -290,11 +290,11 @@ mod tests {
         let expected_address = "0xF9001e6AEE6EA439D713fBbF960EbA76f4770E2B";
 
         let private_key = PrivateKey::from_str(private_key).unwrap();
-        let address = Address::from_private_key(&private_key, &Format::Standard).unwrap();
+        let address = Address::from_private_key(&private_key).unwrap();
         assert_ne!(expected_address, address.to_string());
 
         let public_key = PublicKey::from_private_key(&private_key);
-        let address = Address::from_public_key(&public_key, &Format::Standard).unwrap();
+        let address = Address::from_public_key(&public_key).unwrap();
         assert_ne!(expected_address, address.to_string());
 
         // Invalid address length

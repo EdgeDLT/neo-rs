@@ -24,8 +24,8 @@ impl PrivateKey {
     }
 
     /// Returns the address of the corresponding  private key.
-    pub fn to_address(&self, _format: &Self::Format) -> Result<Address, AddressError> {
-        Address::from_private_key(self, _format)
+    pub fn to_address(&self) -> Result<Address, AddressError> {
+        Address::from_private_key(self)
     }
 
     /// Returns a private key .
@@ -135,7 +135,7 @@ mod tests {
     }
 
     fn test_to_address(expected_address: &Address, private_key: &PrivateKey) {
-        let address = private_key.to_address(&Format::Standard).unwrap();
+        let address = private_key.to_address().unwrap();
         assert_eq!(*expected_address, address);
     }
 
@@ -151,7 +151,7 @@ mod tests {
         assert_eq!(expected_public_key, private_key.to_public_key().to_string());
         assert_eq!(
             expected_address,
-            private_key.to_address(&Format::Standard).unwrap().to_string()
+            private_key.to_address().unwrap().to_string()
         );
     }
 
@@ -166,7 +166,7 @@ mod tests {
         assert_eq!(expected_public_key, private_key.to_public_key().to_string());
         assert_eq!(
             expected_address,
-            private_key.to_address(&Format::Standard).unwrap().to_string()
+            private_key.to_address().unwrap().to_string()
         );
     }
 

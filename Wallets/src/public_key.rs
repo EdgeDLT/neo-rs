@@ -8,6 +8,7 @@ use wagyu_model::{Address, AddressError, PublicKey, PublicKeyError};
 use crate::address::{Address, AddressError};
 use crate::format::Format;
 use crate::private_key::PrivateKey;
+use neo_crypto::ecdsa::{ECECDSA, CipherSuite};
 
 /// Represents an  public key
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash, Serialize, Deserialize, FromStr, Send, Sync, Sized)]
@@ -16,13 +17,15 @@ pub struct PublicKey(pub [u8; PUBLIC_KEY_BIN_LEN]);
 impl PublicKey {
     /// Returns the address corresponding to the given public key.
     pub fn from_private_key(private_key: &PrivateKey) -> Self {
+        let mut ecdsa = ECECDSA::from_suite(CipherSuite::P256_SHA256_TAI).unwrap();
+        let mut pub_key = ecdsa.derive_public_key(&sec_key.as_slice()).unwrap();
 
-        Self(secp256k1::PublicKey::from_secret_key(&private_key.to_secp256k1_secret_key()))
+        Self(pub_key.as_slice())
     }
 
     /// Returns the address of the corresponding private key.
-    pub fn to_address(&self, _format: &Self::Format) -> Result<Self::Address, AddressError> {
-        Address::from_public_key(self, _format)
+    pub fn to_address(&self) -> Result<Self::Address, AddressError> {
+        Address::from_public_key(self)
     }
 
     /// Returns a public key given a secp256k1 public key.
@@ -112,13 +115,13 @@ mod tests {
     }
 
     fn test_to_address(expected_address: &Address, public_key: &PublicKey) {
-        let address = public_key.to_address(&Format::Standard).unwrap();
+        let address = public_key.to_address().unwrap();
         assert_eq!(*expected_address, address);
     }
 
     fn test_from_str(expected_public_key: &str, expected_address: &str) {
         let public_key = PublicKey::from_str(expected_public_key).unwrap();
-        let address = public_key.to_address(&Format::Standard).unwrap();
+        let address = public_key.to_address().unwrap();
         assert_eq!(expected_public_key, public_key.to_string());
         assert_eq!(expected_address, address.to_string());
     }
