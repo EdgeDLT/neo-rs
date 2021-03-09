@@ -126,8 +126,8 @@ impl KeyPair {
             data[0] != 0x80 ||
             data[33] != 0x01 {
 
-            // Err(Error::new(ErrorKind::Other, "Not a subset"))
-            ()
+           return Err(Error::new(ErrorKind::Other, "Not a subset"));
+            // ()
         };
 
         let expected = &data[len - 4..len];
@@ -136,8 +136,10 @@ impl KeyPair {
             let expected = expected.to_base58();
             let found = checksum.to_base58();
             println!("Error: {}==>{}", expected, found);
-            // Err(());
-            ()
+            
+            return Err(Error::new(ErrorKind::Other, ".."));
+            
+            // ()
         }
 
         let mut pk = [0u8; PRIVATE_KEY_BIN_LEN];

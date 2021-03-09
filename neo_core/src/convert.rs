@@ -5,13 +5,14 @@ use std::str;
 use neo_crypto::hex;
 
 use crate::fixed8::Fixed8;
+use neo_crypto::hex::ToHex;
 
 /**
  * @param buf ArrayBuffer
  * @returns ASCII string
  */
 pub fn ab2str(buf: &[u8]) -> String {
-    String::from(str::from_utf8(buf).unwrap())
+    str::from_utf8(buf).unwrap().to_string()
 }
 
 /**
@@ -35,6 +36,7 @@ pub fn hexstring2ab(s: &str) -> Result<Box<[u8]>, Error> {
  * @returns HEX string
  */
 pub fn ab2hexstring(arr: &[u8]) -> String {
+    // arr.to_hex()
     hex::encode(arr)
 }
 
@@ -43,18 +45,18 @@ pub fn ab2hexstring(arr: &[u8]) -> String {
  * @returns HEX string
  */
 pub fn str2hex(s: &str) -> String {
-    ab2hexstring(str2ab(s))
+    s.encode_hex()
+    // ab2hexstring(str2ab(s))
 }
 
 /**
  * @param hexstring HEX string
  * @returns ASCII string
  */
-pub fn hexstring2str(hexstring: &str) -> String {
-    let h = hex::decode(hexstring).unwrap();
+pub fn hex2str(hex_str: &str) -> String {
+    let h = hex::decode(hex_str).unwrap();
     let v = str::from_utf8(h.as_slice()).unwrap();
-
-    String::from(v)
+    v.to_string()
 }
 
 /**

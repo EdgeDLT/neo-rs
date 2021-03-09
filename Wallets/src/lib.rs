@@ -6,6 +6,10 @@ pub mod core;
 mod coin;
 mod claim_item;
 mod asset_balance;
+mod private_key;
+mod public_key;
+mod address;
+mod wif;
 
 
 #[cfg(test)]
