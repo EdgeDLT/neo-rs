@@ -4,7 +4,7 @@ use std::convert::TryFrom;
 use std::error::Error;
 use neo_core::{stringstream::StringStream};
 use neo_core::convert::hex2int;
-use neo_core::misc::reverseHex;
+use neo_core::misc::reverse_hex;
 
 #[derive(Debug, TryFromPrimitive)]
 #[repr(usize)]
@@ -98,9 +98,9 @@ impl StackItem<T> {
 
     fn _deserialize(&self, ss: &mut StringStream) -> Result<T_Item_Type, Error> {
 
-        let mut item = StackItem { item_type: toStackItemType(hex2int(reverseHex(ss.read(1)?.as_str())?) as usize)?, value: None };
+        let mut item = StackItem { item_type: toStackItemType(hex2int(reverse_hex(ss.read(1)?.as_str())?) as usize)?, value: None };
 
-        let l = ss.readVarInt();
+        let l = ss.read_var_int();
         if l == 0 {
             item.value = getDefaultValue(item.item_type)?;
             Ok(&item)
@@ -125,7 +125,7 @@ impl StackItem<T> {
                 }
             },
             StackItemType::Boolean => {
-                let v = hex2int(reverseHex(ss.read(1)?.as_str())?)?;
+                let v = hex2int(reverse_hex(ss.read(1)?.as_str())?)?;
                 item.value = v > 0
             }
             _ => {

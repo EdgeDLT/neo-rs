@@ -1,4 +1,4 @@
-// import { Fixed8, reverseHex } from "../u";
+// import { Fixed8, reverse_hex } from "../u";
 // import { getScriptHashFromAddress, isAddress } from "../wallet";
 
 use num_enum::TryFromPrimitive;
@@ -104,7 +104,7 @@ impl ContractParam<T> {
         match format.to_lowercase().as_str() {
             "address" => Ok(ContractParam { param_type: ContractParamType::ByteArray, value: reverseHex(get_script_hash_from_address(&value)}),
 
-            "fixed8" => {
+            "Fixed8" => {
             //TODO:
                 // let decimals = 8;
                 //   if (args.length === 1) {

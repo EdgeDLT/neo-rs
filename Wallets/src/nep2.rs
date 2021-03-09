@@ -5,10 +5,10 @@ use std::{fmt, fmt::Display, str::FromStr, convert::{TryInto, TryFrom}};
 use scrypt::{scrypt, Params};
 
 use crate::utilities::crypto::{checksum, hash160};
-use neo_crypto::{ecdsa::{CipherSuite, ecdsa, ECECDSA},
+use neo_crypto::{ecdsa::{CipherSuite, Ecdsa, ECECDSA},
                  base58::{FromBase58, ToBase58},
                  hex,
-                 aes::{aes,
+                 aes::{Aes,
                        cipher::{generic_array::GenericArray,
                                 {BlockCipher, NewBlockCipher}},
                  }};
@@ -28,7 +28,7 @@ impl nep2 {
 
         let private_key: &PrivateKeyBin = pri_key.as_bytes() as &PrivateKeyBin;
 
-        let KeyPair = KeyPair::get_KeyPair_from_private_key(private_key);
+        let KeyPair = KeyPair::get_key_pair_from_private_key(private_key);
 
         let mut addresshash: [u8; 4] = KeyPair.get_addr_hash_from_address();
 
@@ -50,7 +50,7 @@ impl nep2 {
             u8xor[i] = &private_key[i] ^ half_1[i];
         }
 
-        let cipher = aes::from_key(<[u8; 32]>::try_from(half_2).unwrap());
+        let cipher = Aes::from_key(<[u8; 32]>::try_from(half_2).unwrap());
         let encrypted = cipher.encrypt(Vec::from(u8xor));
 
         // # Assemble the final result
@@ -103,7 +103,7 @@ impl nep2 {
         // derived1 = derived[:32]
         // derived2 = derived[32:]
 
-        let cipher = aes::from_key(<[u8; 32]>::try_from(half_2).unwrap());
+        let cipher = Aes::from_key(<[u8; 32]>::try_from(half_2).unwrap());
         let decrypted = cipher.encrypt(Vec::from(encrypted));
 
         let mut pri_key = [0u8; 32];
@@ -111,7 +111,7 @@ impl nep2 {
         for i in 0..32 {
             pri_key[i] = decrypted[i] ^ half_1[i];
         }
-        // cipher = aes.new(derived2, aes.MODE_ECB)
+        // cipher = Aes.new(derived2, Aes.MODE_ECB)
         // decrypted = cipher.decrypt(encrypted)
         // private_key = xor_bytes(decrypted, derived1)
 

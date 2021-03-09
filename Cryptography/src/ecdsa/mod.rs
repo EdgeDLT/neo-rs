@@ -1,12 +1,11 @@
-use std::fmt;
 use std::{
     fmt::{Debug, Formatter},
     os::raw::c_ulong,
 };
+use std::fmt;
 
 use failure::Fail;
 use hmac_sha256::HMAC;
-
 use openssl::{
     bn::{BigNum, BigNumContext},
     ec::{EcGroup, EcPoint, PointConversionForm},
@@ -15,17 +14,16 @@ use openssl::{
     nid::Nid,
 };
 
-use crate::hex;
 
-pub trait ecdsa<PublicKey, SecretKey> {
+use self::utils::{append_leading_zeros, bits2int, bits2octets};
+
+pub trait Ecdsa<PublicKey, SecretKey> {
     type Error;
 
     fn prove(&mut self, x: SecretKey, alpha: &[u8]) -> Result<Vec<u8>, Self::Error>;
 
     fn verify(&mut self, y: PublicKey, pi: &[u8], alpha: &[u8]) -> Result<Vec<u8>, Self::Error>;
 }
-
-use self::utils::{append_leading_zeros, bits2int, bits2octets};
 
 mod utils;
 
@@ -319,7 +317,7 @@ impl ECECDSA {
 }
 
 
-impl ecdsa<&[u8], &[u8]> for ECECDSA {
+impl Ecdsa<&[u8], &[u8]> for ECECDSA {
     type Error = Error;
 
     fn prove(&mut self, x: &[u8], alpha: &[u8]) -> Result<Vec<u8>, Error> {
@@ -424,7 +422,7 @@ mod test {
 
     /// Test vector for `P256-SHA256-TAI` cipher suite
     /// ASCII: "sample"
-    /// Source: [ecdsa-draft-05](https://tools.ietf.org/pdf/draft-irtf-cfrg-ecdsa-05) (section A.1)
+    /// Source: [Ecdsa-draft-05](https://tools.ietf.org/pdf/draft-irtf-cfrg-ecdsa-05) (section A.1)
     #[test]
     fn test_prove_p256_sha256_tai_1() {
         let mut ecdsa = ECECDSA::from_suite(CipherSuite::P256_SHA256_TAI).unwrap();
@@ -441,14 +439,14 @@ mod test {
 
     /// Test vector for `P256-SHA256-TAI` cipher suite
     /// ASCII: "sample"
-    /// Source: [ecdsa-draft-05](https://tools.ietf.org/pdf/draft-irtf-cfrg-ecdsa-05) (section A.1)
+    /// Source: [Ecdsa-draft-05](https://tools.ietf.org/pdf/draft-irtf-cfrg-ecdsa-05) (section A.1)
     #[test]
     fn test_verify_p256_sha256_tai_1() {
         let mut ecdsa = ECECDSA::from_suite(CipherSuite::P256_SHA256_TAI).unwrap();
         // Public Key (labelled as y)
         let y = hex::decode("0360fed4ba255a9d31c961eb74c6356d68c049b8923b61fa6ce669622e60f29fb6")
             .unwrap();
-        // ecdsa Proof
+        // Ecdsa Proof
         let pi = hex::decode("029bdca4cc39e57d97e2f42f88bcf0ecb1120fb67eb408a856050dbfbcbf57c524347fc46ccd87843ec0a9fdc090a407c6fbae8ac1480e240c58854897eabbc3a7bb61b201059f89186e7175af796d65e7").unwrap();
         // Data: ASCII "sample"
         let alpha = hex::decode("73616d706c65").unwrap();
@@ -462,7 +460,7 @@ mod test {
 
     /// Test vector for `P256-SHA256-TAI` cipher suite
     /// ASCII: "test"
-    /// Source: [ecdsa-draft-05](https://tools.ietf.org/pdf/draft-irtf-cfrg-ecdsa-05) (section A.1)
+    /// Source: [Ecdsa-draft-05](https://tools.ietf.org/pdf/draft-irtf-cfrg-ecdsa-05) (section A.1)
     #[test]
     fn test_prove_p256_sha256_tai_2() {
         let mut ecdsa = ECECDSA::from_suite(CipherSuite::P256_SHA256_TAI).unwrap();
@@ -479,14 +477,14 @@ mod test {
 
     /// Test vector for `P256-SHA256-TAI` cipher suite
     /// ASCII: "test"
-    /// Source: [ecdsa-draft-05](https://tools.ietf.org/pdf/draft-irtf-cfrg-ecdsa-05) (section A.1)
+    /// Source: [Ecdsa-draft-05](https://tools.ietf.org/pdf/draft-irtf-cfrg-ecdsa-05) (section A.1)
     #[test]
     fn test_verify_p256_sha256_tai_2() {
         let mut ecdsa = ECECDSA::from_suite(CipherSuite::P256_SHA256_TAI).unwrap();
         // Public Key (labelled as y)
         let y = hex::decode("0360fed4ba255a9d31c961eb74c6356d68c049b8923b61fa6ce669622e60f29fb6")
             .unwrap();
-        // ecdsa Proof
+        // Ecdsa Proof
         let pi = hex::decode("03873a1cce2ca197e466cc116bca7b1156fff599be67ea40b17256c4f34ba2549c94ffd2b31588b5fe034fd92c87de5b520b12084da6c4ab63080a7c5467094a1ee84b80b59aca54bba2e2baa0d108191b").unwrap();
         // Data: ASCII "sample"
         let alpha = hex::decode("74657374").unwrap();
@@ -500,7 +498,7 @@ mod test {
 
     /// Test vector for `P256-SHA256-TAI` cipher suite
     /// ASCII: "Example of ECDSA with ansip256r1 and SHA-256"
-    /// Source: [ecdsa-draft-05](https://tools.ietf.org/pdf/draft-irtf-cfrg-ecdsa-05) (section A.1)
+    /// Source: [Ecdsa-draft-05](https://tools.ietf.org/pdf/draft-irtf-cfrg-ecdsa-05) (section A.1)
     #[test]
     fn test_prove_p256_sha256_tai_3() {
         let mut ecdsa = ECECDSA::from_suite(CipherSuite::P256_SHA256_TAI).unwrap();
@@ -516,14 +514,14 @@ mod test {
 
     /// Test vector for `P256-SHA256-TAI` cipher suite
     /// ASCII: "Example of ECDSA with ansip256r1 and SHA-256"
-    /// Source: [ecdsa-draft-05](https://tools.ietf.org/pdf/draft-irtf-cfrg-ecdsa-05) (section A.1)
+    /// Source: [Ecdsa-draft-05](https://tools.ietf.org/pdf/draft-irtf-cfrg-ecdsa-05) (section A.1)
     #[test]
     fn test_verify_p256_sha256_tai_3() {
         let mut ecdsa = ECECDSA::from_suite(CipherSuite::P256_SHA256_TAI).unwrap();
         // Public Key (labelled as y)
         let y = hex::decode("03596375e6ce57e0f20294fc46bdfcfd19a39f8161b58695b3ec5b3d16427c274d")
             .unwrap();
-        // ecdsa Proof
+        // Ecdsa Proof
         let pi = hex::decode("02abe3ce3b3aa2ab3c6855a7e729517ebfab6901c2fd228f6fa066f15ebc9b9d415a680736f7c33f6c796e367f7b2f467026495907affb124be9711cf0e2d05722d3a33e11d0c5bf932b8f0c5ed1981b64").unwrap();
         // Data: ASCII "sample"
         let alpha = hex::decode("4578616d706c65206f66204543445341207769746820616e736970323536723120616e64205348412d323536").unwrap();
@@ -537,7 +535,7 @@ mod test {
 
     /// Test vector for `P256-SHA256-TAI` cipher suite
     /// ASCII: "sample"
-    /// Source: [ecdsa-draft-05](https://tools.ietf.org/pdf/draft-irtf-cfrg-ecdsa-05) (section A.1)
+    /// Source: [Ecdsa-draft-05](https://tools.ietf.org/pdf/draft-irtf-cfrg-ecdsa-05) (section A.1)
     #[test]
     fn test_hash_to_try_and_increment_1() {
         let mut ecdsa = ECECDSA::from_suite(CipherSuite::P256_SHA256_TAI).unwrap();
@@ -563,7 +561,7 @@ mod test {
 
     /// Test vector for `P256-SHA256-TAI` cipher suite
     /// ASCII: "test"
-    /// Source: [ecdsa-draft-05](https://tools.ietf.org/pdf/draft-irtf-cfrg-ecdsa-05) (section A.1)
+    /// Source: [Ecdsa-draft-05](https://tools.ietf.org/pdf/draft-irtf-cfrg-ecdsa-05) (section A.1)
     #[test]
     fn test_hash_to_try_and_increment_2() {
         let mut ecdsa = ECECDSA::from_suite(CipherSuite::P256_SHA256_TAI).unwrap();
@@ -666,7 +664,7 @@ mod test {
 
     /// Test vector for `P256-SHA256-TAI` cipher suite
     /// ASCII: "sample"
-    /// Source: [ecdsa-draft-05](https://tools.ietf.org/pdf/draft-irtf-cfrg-ecdsa-05) (section A.1)
+    /// Source: [Ecdsa-draft-05](https://tools.ietf.org/pdf/draft-irtf-cfrg-ecdsa-05) (section A.1)
     #[test]
     fn test_generate_nonce_p256_3() {
         let mut ecdsa = ECECDSA::from_suite(CipherSuite::P256_SHA256_TAI).unwrap();
@@ -695,7 +693,7 @@ mod test {
 
     /// Test vector for `P256-SHA256-TAI` cipher suite
     /// ASCII: "test"
-    /// Source: [ecdsa-draft-05](https://tools.ietf.org/pdf/draft-irtf-cfrg-ecdsa-05) (section A.1)
+    /// Source: [Ecdsa-draft-05](https://tools.ietf.org/pdf/draft-irtf-cfrg-ecdsa-05) (section A.1)
     #[test]
     fn test_generate_nonce_p256_4() {
         let mut ecdsa = ECECDSA::from_suite(CipherSuite::P256_SHA256_TAI).unwrap();
@@ -724,7 +722,7 @@ mod test {
 
     /// Test vector for `P256-SHA256-TAI` cipher suite
     /// ASCII: "Example of ECDSA with ansip256r1 and SHA-256"
-    /// Source: [ecdsa-draft-05](https://tools.ietf.org/pdf/draft-irtf-cfrg-ecdsa-05) (section A.1)
+    /// Source: [Ecdsa-draft-05](https://tools.ietf.org/pdf/draft-irtf-cfrg-ecdsa-05) (section A.1)
     #[test]
     fn test_generate_nonce_p256_5() {
         let mut ecdsa = ECECDSA::from_suite(CipherSuite::P256_SHA256_TAI).unwrap();
@@ -753,7 +751,7 @@ mod test {
 
     /// Test vector for `P256-SHA256-TAI` cipher suite
     /// ASCII: "sample"
-    /// Source: [ecdsa-draft-05](https://tools.ietf.org/pdf/draft-irtf-cfrg-ecdsa-05) (section A.1)
+    /// Source: [Ecdsa-draft-05](https://tools.ietf.org/pdf/draft-irtf-cfrg-ecdsa-05) (section A.1)
     #[test]
     fn test_hash_points() {
         let mut ecdsa = ECECDSA::from_suite(CipherSuite::P256_SHA256_TAI).unwrap();
@@ -788,7 +786,7 @@ mod test {
 
     /// Test vector for `P256-SHA256-TAI` cipher suite
     /// ASCII: "sample"
-    /// Source: [ecdsa-draft-05](https://tools.ietf.org/pdf/draft-irtf-cfrg-ecdsa-05) (section A.1)
+    /// Source: [Ecdsa-draft-05](https://tools.ietf.org/pdf/draft-irtf-cfrg-ecdsa-05) (section A.1)
     #[test]
     fn test_decode_proof() {
         let mut ecdsa = ECECDSA::from_suite(CipherSuite::P256_SHA256_TAI).unwrap();
@@ -837,7 +835,7 @@ mod test {
             .unwrap();
         // Data: ASCII "sample"
         let alpha = hex::decode("73616d706c65").unwrap();
-        // ecdsa proof
+        // Ecdsa proof
         let pi = hex::decode("031f4dbca087a1972d04a07a779b7df1caa99e0f5db2aa21f3aecc4f9e10e85d0814faa89697b482daa377fb6b4a8b0191a65d34a6d90a8a2461e5db9205d4cf0bb4b2c31b5ef6997a585a9f1a72517b6f").unwrap();
 
         let beta = ecdsa.verify(&y, &pi, &alpha).unwrap();
@@ -855,7 +853,7 @@ mod test {
         // Public Key (labelled as y)
         let y = hex::decode("032c8c31fc9f990c6b55e3865a184a4ce50e09481f2eaeb3e60ec1cea13a6ae645")
             .unwrap();
-        // ecdsa proof
+        // Ecdsa proof
         let pi = hex::decode("031f4dbca087a1972d04a07a779b7df1caa99e0f5db2aa21f3aecc4f9e10e85d0800851b42ee92f76d98c1f19e4a1e855526b20afe0dd6eb232a493adc107eb2b0f1").unwrap();
 
         // Verify the proof with a different message will fail

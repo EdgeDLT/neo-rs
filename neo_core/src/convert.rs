@@ -1,16 +1,10 @@
-// import Fixed8 from "./Fixed8";
-// import { ensureHex, reverseHex } from "./misc";
-// use hex as hex_str;
-
-use crate::misc::reverseHex;
-use crate::fixed8::fixed8;
-use neo_crypto::hex;
 use std::io::Error;
-use std::convert::TryInto;
-use std::str;
 use std::num::ParseIntError;
-use std::iter::FromIterator;
+use std::str;
 
+use neo_crypto::hex;
+
+use crate::fixed8::Fixed8;
 
 /**
  * @param buf ArrayBuffer
@@ -96,8 +90,8 @@ pub fn num2hexstring(num: i64) -> String {
  * @param size output size in bytes
  * @return number in Fixed8 representation.
  */
-pub fn num2fixed8(num: i64) -> fixed8 {
-    fixed8(num)
+pub fn num2fixed8(num: i64) -> Fixed8 {
+    Fixed8(num)
 }
 
 
@@ -106,7 +100,7 @@ pub fn num2fixed8(num: i64) -> fixed8 {
  * @param num
  * @returns hexstring of int.
  */
-pub fn num2VarInt(num: i64) -> String {
+pub fn num2var_int(num: i64) -> String {
     match num {
         d if d < 0xfd => num2hexstring(num),
         d if d <= 0xffff => format!("fd{}", num2hexstring(num)),
@@ -117,7 +111,7 @@ pub fn num2VarInt(num: i64) -> String {
 
 #[cfg(test)]
 mod tests {
-    use crate::convert::{ab2str, str2ab, int2hex};
+    use crate::convert::{ab2str, hex2int, int2hex, str2ab};
 
     #[test]
     pub fn test_ab2str() {
@@ -134,10 +128,18 @@ mod tests {
     }
 
     #[test]
-    pub fn test_int2hex(){
-        let i =92233720;
+    pub fn test_int2hex() {
+        let i = 92233720;
         let h = int2hex(i).to_lowercase();
 
         assert_eq!(h, "57F5FF8".to_lowercase())
+    }
+
+    #[test]
+    pub fn test_hex2int() {
+        let h = "57F5FF8";
+        let i = hex2int(h).unwrap();
+
+        assert_eq!(i, 92233720)
     }
 }

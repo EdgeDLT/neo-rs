@@ -1,5 +1,4 @@
 use crate::no_std::*;
-use std::convert::TryInto;
 
 #[cfg_attr(test, macro_use)]
 pub mod crypto;

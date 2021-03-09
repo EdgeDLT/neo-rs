@@ -1,7 +1,7 @@
 #![no_std]
 #![deny(unsafe_code)]
-#![warn(missing_docs, rust_2018_idioms)]
-
+// #![warn(missing_docs)]
+#![allow(unused)]
 pub use cipher::{self, BlockCipher, NewBlockCipher, generic_array::{typenum::UTerm, GenericArray}
 };
 
@@ -23,21 +23,21 @@ type Aes256Ecb = Ecb<Aes256, Pkcs7>;
 
 pub type KeySize = [u8; 32];
 
-pub struct aes {
+pub struct Aes {
     aes: Aes256,
     aes_varlen: Aes256Ecb,
     key: KeySize,
 }
 
-impl Debug for aes {
+impl Debug for Aes {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        f.debug_struct("aes")
+        f.debug_struct("Aes")
             .field("key", &self.key)
             .finish()
     }
 }
 
-impl aes {
+impl Aes {
     pub fn from_key(key: KeySize) -> Self {
         let arr = GenericArray::from_slice(&key);
         let blank = U8Array::<UTerm>::default();
@@ -45,7 +45,7 @@ impl aes {
         let cipher = Aes256::new(&arr);
         let varlen = Aes256Ecb::new(cipher.clone(), &blank);
 
-        aes {
+        Aes {
             aes: cipher,
             aes_varlen: varlen,
             key,

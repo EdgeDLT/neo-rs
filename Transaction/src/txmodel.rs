@@ -1,7 +1,7 @@
 use neo_core::stringstream::StringStream;
 use std::io::Error;
-use neo_core::fixed8::fixed8;
-use neo_core::misc::reverseHex;
+use neo_core::fixed8::Fixed8;
+use neo_core::misc::reverse_hex;
 use neo_crypto::sha2;
 use crate::transaction_output::TransactionOutput;
 use crate::witness::Witness;
@@ -27,7 +27,7 @@ pub trait transaction {
 
     fn hash(&self) -> Result<&str, Error>;
 
-    fn fees(&self) -> fixed8 {fixed(0) }
+    fn fees(&self) -> Fixed8 {fixed(0) }
 
     // HashMap<String, Ident>
     // fn exclusiveData(&self): { [key: string]: any };
@@ -39,7 +39,7 @@ pub trait transaction {
     fn addIntent(
         &mut self,
         symbol: &str,
-        value: fixed8,
+        value: Fixed8,
         address: &str,
     ) -> &self;
 
@@ -59,7 +59,7 @@ pub trait transaction {
     //     &self,
     //     balance: Balance,
     //     strategy?: calculationStrategyFunction,
-    //     fees: fixed8
+    //     fees: Fixed8
     // )-> &self;
 
     /**

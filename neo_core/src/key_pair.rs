@@ -1,17 +1,20 @@
-use crate::no_std::*;
+#![allow(unused)]
+
+use std::{convert::TryInto, fmt, fmt::Display, io::Error, str::FromStr};
+use std::borrow::Borrow;
+use std::convert::TryFrom;
+use std::io::ErrorKind;
+
 use rand::Rng;
-use std::{fmt, fmt::Display, str::FromStr, convert::TryInto, io::Error};
-use crate::utilities::crypto::{checksum, hash160};
-use neo_crypto::{ecdsa::{CipherSuite, ECECDSA},
-                 base58::{FromBase58, ToBase58},
+
+use neo_crypto::{base58::{FromBase58, ToBase58},
+                 ecdsa::{CipherSuite, ECECDSA},
                  hex,
 };
 
-
-use std::convert::TryFrom;
-use std::borrow::Borrow;
-use crate::neo_type::{PublicKeyBin, PrivateKeyBin, AddressHex, PRIVATE_KEY_BIN_LEN, WIF_KEY_BIN_LEN, PUBLIC_KEY_BIN_LEN};
-use std::io::ErrorKind;
+use crate::neo_type::{AddressHex, PRIVATE_KEY_BIN_LEN, PrivateKeyBin, PUBLIC_KEY_BIN_LEN, PublicKeyBin, WIF_KEY_BIN_LEN};
+use crate::no_std::*;
+use crate::utilities::crypto::{checksum, hash160};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct KeyPair {
@@ -25,9 +28,9 @@ impl KeyPair {
     pub fn new() -> KeyPair {
         let mut ecdsa = ECECDSA::from_suite(CipherSuite::P256_SHA256_TAI).unwrap();
         let mut rng = rand::thread_rng();
-        let mut sec_key = [0u8;32];
+        let mut sec_key = [0u8; 32];
 
-         let ran:[u8;32] = rng.gen();
+        let ran: [u8; 32] = rng.gen();
 
         sec_key.copy_from_slice(ran.as_slice());
 
@@ -59,7 +62,7 @@ impl KeyPair {
         KeyPair {
             private_key: sec_key.clone(),
             public_key: pubk.clone(),
-            address:  String::from(add),
+            address: String::from(add),
         }
     }
 
@@ -73,14 +76,13 @@ impl KeyPair {
         Ok(<[u8; 33]>::try_from(pkk).unwrap())
     }
 
-    pub fn get_KeyPair_from_private_key(pri_key: &[u8]) -> KeyPair {
-
+    pub fn get_key_pair_from_private_key(pri_key: &[u8]) -> KeyPair {
         let pub_key = KeyPair::get_public_key_from_private_key(&pri_key).unwrap().clone();
         let mut addr = KeyPair::get_address_from_public_key(&pub_key).unwrap();
 
         Self {
             private_key: <[u8; 32]>::try_from(pri_key).unwrap(),
-            public_key:pub_key,
+            public_key: pub_key,
             address: String::from(addr),
         }
     }
@@ -98,14 +100,13 @@ impl KeyPair {
         cs.try_into().unwrap()
     }
 
-    pub fn get_addr_hash_from_address(addr:&str) ->Result<Box<[u8]>, Error> {
+    pub fn get_addr_hash_from_address(addr: &str) -> Result<Box<[u8]>, Error> {
         let cs = checksum(&addr.from_base58().unwrap());
 
         Ok(cs.into_boxed_slice())
     }
 
     pub fn get_key_pair_from_wif(&self, wif: &str) -> Result<KeyPair, KeyPairError> {
-
         let pk: PrivateKeyBin = self.get_private_key_from_wif(&wif).unwrap();
 
         let pubk = self.get_public_key()?;
@@ -174,11 +175,11 @@ impl KeyPair {
         Ok(addr.to_base58())
     }
 
-    pub fn get_private_key_from_KeyPair(KeyPair_key: Vec<u8>, passphrase: Vec<u8>) {}
+    pub fn get_private_key_from_key_pair(key_pair_key: Vec<u8>, passphrase: Vec<u8>) {}
 
 
     pub fn export(&self) {}
-    pub fn export_KeyPair(&self, passphrase: Vec<u8>) {}
+    pub fn export_key_pair(&self, passphrase: Vec<u8>) {}
 }
 
 impl fmt::Display for KeyPair {
@@ -193,11 +194,13 @@ impl fmt::Display for KeyPair {
 }
 
 impl Default for KeyPair {
-    fn default() -> Self { Self {
-        private_key: [0u8; PRIVATE_KEY_BIN_LEN],
-        public_key: [0u8; PUBLIC_KEY_BIN_LEN],
-        address: String::from("")
-    } }
+    fn default() -> Self {
+        Self {
+            private_key: [0u8; PRIVATE_KEY_BIN_LEN],
+            public_key: [0u8; PUBLIC_KEY_BIN_LEN],
+            address: String::from(""),
+        }
+    }
 }
 
 #[derive(Debug, Fail)]
@@ -263,13 +266,15 @@ impl From<rand_core::Error> for KeyPairError {
 
 #[cfg(test)]
 mod tests {
-    use neo_crypto::ecdsa::{ECECDSA, CipherSuite};
     use rand::Rng;
+
+    use neo_crypto::ecdsa::{CipherSuite, ECECDSA};
     use neo_crypto::hex;
+
     use crate::KeyPair;
 
     #[test]
-    pub fn test_get_pub_key_from_private_key(){
+    pub fn test_get_pub_key_from_private_key() {
         let private_key = "1d9d6b11b9570e50a8511de539be9d125dda022b7d65452acc03de3aa3e87d6c";
         let pri_key = hex::decode(private_key).unwrap();
 
@@ -277,16 +282,15 @@ mod tests {
 
         let pub_key_hex = hex::encode(&pub_key);
 
-        assert_eq!(pub_key_hex,"03f9e9a50af13ccec64feedb45d558815ba6d3a3e8c3a727be7f97bb9eeca80f52")
+        assert_eq!(pub_key_hex, "03f9e9a50af13ccec64feedb45d558815ba6d3a3e8c3a727be7f97bb9eeca80f52")
     }
 
     #[test]
-    pub fn test_get_address_from_public_key(){
+    pub fn test_get_address_from_public_key() {
         let public_key = "03f9e9a50af13ccec64feedb45d558815ba6d3a3e8c3a727be7f97bb9eeca80f52";
 
         let pub_key = hex::decode(public_key).unwrap();
         let addr = KeyPair::get_address_from_public_key(&pub_key).unwrap();
         assert_eq!(addr, "AHV5J1bVXAvM3eVDrCXx34U1QQnNKeKX1F");
     }
-
 }

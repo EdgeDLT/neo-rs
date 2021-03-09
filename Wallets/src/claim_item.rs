@@ -1,10 +1,10 @@
 // import Fixed8 from "../../u/Fixed8";
 
-use neo_core::fixed8::fixed8;
+use neo_core::fixed8::Fixed8;
 
 #[derive(Ord, PartialOrd, Eq, PartialEq,Debug,Hash)]
 pub struct claim_item<'a> {
-  claim: fixed8,
+  claim: Fixed8,
   txid: &'a str,
   index: u32,
   value: i32,

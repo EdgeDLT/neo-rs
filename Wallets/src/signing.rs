@@ -10,7 +10,7 @@ use crate::nep2;
 
 use neo_crypto::sha2::Digest;
 use neo_core::neo_type::{SignatureHex, PublicKeyHex};
-use neo_crypto::ecdsa::{ECECDSA, CipherSuite, ecdsa};
+use neo_crypto::ecdsa::{ECECDSA, CipherSuite, Ecdsa};
 use std::fmt::{Display, Formatter};
 
 #[derive(Debug)]

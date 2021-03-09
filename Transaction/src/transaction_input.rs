@@ -1,9 +1,9 @@
 use neo_core::{stringstream::StringStream, KeyPair::KeyPair};
 use neo_crypto::hex;
 use std::error::Error;
-use neo_core::misc::reverseHex;
+use neo_core::misc::reverse_hex;
 use crate::utils::get_asset_id_by_symbol;
-use neo_core::fixed8::fixed8;
+use neo_core::fixed8::Fixed8;
 use crate::txmodel::{Transaction, Transaction_Trait, transaction_param};
 use neo_core::convert::{num2hexstring, hex2int};
 
@@ -25,13 +25,13 @@ impl transaction_param for TransactionInput {
     }
 
     fn fromStream(&self, ss: &mut StringStream) -> Result<TransactionInput, Error> {
-        let prevHash = reverseHex(ss.read(32)?.as_str())?;
-        let prevIndex = hex2int(reverseHex(ss.read(2)?.as_str())?)?;
+        let prevHash = reverse_hex(ss.read(32)?.as_str())?;
+        let prevIndex = hex2int(reverse_hex(ss.read(2)?.as_str())?)?;
         Ok(TransactionInput { prevHash, prevIndex: prevIndex as u32 })
     }
 
     fn serialize(&self) -> Result<String, Error> {
-        reverseHex(self.prevHash) + reverseHex(num2hexstring(self.prevIndex as i32))
+        reverse_hex(self.prevHash) + reverse_hex(num2hexstring(self.prevIndex as i32))
     }
 
     fn equals(&self, other: &TransactionInput) -> bool {

@@ -3,7 +3,7 @@ use num_enum::TryFromPrimitive;
 use std::convert::TryFrom;
 use std::error::Error;
 use crate::txmodel::{Transaction, Transaction_Trait, transaction_param};
-use neo_core::convert::{num2VarInt, hex2int};
+use neo_core::convert::{num2var_int, hex2int};
 use neo_core::stringstream::StringStream;
 
 #[derive(Debug, TryFromPrimitive)]
@@ -40,9 +40,9 @@ impl transaction_param for StateDescriptor {
     fn fromStream(&self, ss: &mut StringStream) -> Result<StateDescriptor, Error> {
         let state_type = hex2int(ss.read(1)?.as_str())?;
 
-        let key = ss.readVarBytes()?.as_str();
-        let field = hexString2str(ss.readVarBytes());
-        let value = ss.readVarBytes()?.as_str();
+        let key = ss.read_var_bytes()?.as_str();
+        let field = hexString2str(ss.read_var_bytes());
+        let value = ss.read_var_bytes()?.as_str();
 
         Ok(StateDescriptor { state_type: toStateType(state_type as usize), key, field, value })
     }
@@ -51,12 +51,12 @@ impl transaction_param for StateDescriptor {
     fn serialize(&self) -> Result<&str, Error> {
         let out = num2hexString(&self.state_type);
 
-        out += num2VarInt((&self.key.len() / 2) as i32);
+        out += num2var_int((&self.key.len() / 2) as i32);
         out += self.key.clone();
         let hexField = str2hexString(self.field);
-        out += num2VarInt(&hexField.len() / 2);
+        out += num2var_int(&hexField.len() / 2);
         out += hexField;
-        out += num2VarInt((&self.value.len() / 2) as i32);
+        out += num2var_int((&self.value.len() / 2) as i32);
         out += self.value;
         Ok(out)
     }

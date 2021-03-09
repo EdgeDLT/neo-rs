@@ -3,10 +3,10 @@ use crate::transaction_attribute::TransactionAttribute;
 use crate::transaction_input::TransactionInput;
 use crate::transaction_output::TransactionOutput;
 use crate::witness::Witness;
-use neo_core::misc::reverseHex;
+use neo_core::misc::reverse_hex;
 use neo_core::no_std::io::Error;
 use neo_crypto::sha2;
-use neo_core::fixed8::fixed8;
+use neo_core::fixed8::Fixed8;
 use crate::txmodel::transaction;
 use crate::usage::{toTxAttrUsage, TxAttrUsage};
 
@@ -22,7 +22,7 @@ pub(crate) struct BaseTransaction {
 
 impl transaction for BaseTransaction {
     fn hash(&self) -> Result<&str, Error> {
-        reverseHex(sha2::digest(self.serialize(false)))
+        reverse_hex(sha2::digest(self.serialize(false)))
     }
 
 
@@ -31,7 +31,7 @@ impl transaction for BaseTransaction {
         self
     }
 
-    fn addIntent(&mut self, symbol: &str, value: fixed8, address: &str) -> &self {
+    fn addIntent(&mut self, symbol: &str, value: Fixed8, address: &str) -> &self {
         self.outputs.push(TransactionOutput.fromIntent(symbol, value, address));
         self
     }
@@ -75,10 +75,10 @@ impl BaseTransaction {
 
 
     pub fn hash(&self) -> Result<&str, Error> {
-        reverseHex(sha2::digest(self.serialize(false)))
+        reverse_hex(sha2::digest(self.serialize(false)))
     }
 
-    fn fees(&self) -> fixed8 {};
+    fn fees(&self) -> Fixed8 {};
 
     // fn exclusiveData(&self): { [key: string]: any };
 

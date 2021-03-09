@@ -4,7 +4,7 @@ pub const ASSET_ID_NEO: &str = "c56f33fc6ecfcd0c225c4ab356fee59390af8560be0e930f
 pub const ASSET_ID_GAS: &str = "602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7";
 
 
-pub enum ASSET_TYPE {
+pub enum AssetType {
     CreditFlag = 0x40,
     DutyFlag = 0x80,
     GoverningToken = 0x00,
@@ -44,10 +44,10 @@ pub const NEP_HEADER_2: u8 = 0x42;
 pub const NEP_FLAG: u8 = 0xe0;
 
 // pub const DEFAULT_SYSFEE: { [key: string]: number } = {
-pub const DEFAULT_SYSFEE_enrollmentTransaction: u16 = 1000;
-pub const DEFAULT_SYSFEE_issueTransaction: u16 = 500;
-pub const DEFAULT_SYSFEE_publishTransaction: u16 = 500;
-pub const DEFAULT_SYSFEE_registerTransaction: u16 = 10000;
+pub const DEFAULT_SYSFEE_ENROLLMENT_TRANSACTION: u16 = 1000;
+pub const DEFAULT_SYSFEE_ISSUE_TRANSACTION: u16 = 500;
+pub const DEFAULT_SYSFEE_PUBLISH_TRANSACTION: u16 = 500;
+pub const DEFAULT_SYSFEE_REGISTER_TRANSACTION: u16 = 10000;
 // };
 
 // pub const DEFAULT_WALLET = {
@@ -68,7 +68,7 @@ pub const DEFAULT_SYSFEE_registerTransaction: u16 = 10000;
 //   deployed: false,
 // };
 
-pub enum NEO_NETWORK {
+pub enum NeoNetwork {
     MAIN,
     TEST,
 }

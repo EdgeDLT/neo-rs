@@ -4,7 +4,7 @@ use std::io;
 use regex::Regex;
 use neo_core::convert::hex2int;
 use crate::core::getPublicKeyUnencoded;
-use neo_core::misc::reverseHex;
+use neo_core::misc::reverse_hex;
 
 #[derive(Debug)]
 pub struct verify {}
@@ -85,7 +85,7 @@ impl verify {
             false
         }
         // As other chains use similar checksum methods, we need to attempt to transform the programHash back into the address
-        let scriptHash = reverseHex(programHash.slice(2, 42));
+        let scriptHash = reverse_hex(programHash.slice(2, 42));
 
         if getAddressFromScriptHash(scriptHash) != address {
             // address is not valid Neo address, could be btc, ltc etc.

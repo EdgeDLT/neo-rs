@@ -1,5 +1,3 @@
-#![no_std]
-
 pub extern crate digest;
 
 #[cfg(feature = "std")]

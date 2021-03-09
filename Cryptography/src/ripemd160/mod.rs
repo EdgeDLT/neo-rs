@@ -1,4 +1,3 @@
-#![no_std]
 extern crate block_buffer;
 extern crate opaque_debug;
 

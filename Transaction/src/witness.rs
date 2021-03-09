@@ -1,4 +1,4 @@
-// import { hash160, num2VarInt, reverseHex, StringStream } from "../../u";
+// import { hash160, num2var_int, reverse_hex, StringStream } from "../../u";
 // import {
 //   Account,
 //   getPublicKeysFromVerificationScript,
@@ -9,12 +9,12 @@
 // } from "../../wallet";
 
 
-use neo_core::convert::num2VarInt;
+use neo_core::convert::num2var_int;
 use crate::txmodel::Transaction;
 use neo_core::no_std::io::Error;
 use neo_core::stringstream::StringStream;
 use neo_wallet::verify::verify;
-use neo_core::misc::reverseHex;
+use neo_core::misc::reverse_hex;
 use neo_core::crypto::hash160;
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash, Serialize, Deserialize)]
@@ -32,14 +32,14 @@ impl Transaction for Witness {
     }
 
     fn fromStream(&self, ss: &mut StringStream) -> Result<Witness, Error> {
-        let invocationScript = ss.readVarBytes()?.as_str();
-        let verificationScript = ss.readVarBytes()?.as_str();
+        let invocationScript = ss.read_var_bytes()?.as_str();
+        let verificationScript = ss.read_var_bytes()?.as_str();
         Ok(Witness({ invocationScript, verificationScript })
     }
 
     fn serialize(&self) -> Result<String, Error> {
-        let invoLength = num2VarInt(self.invocationScript.len() / 2);
-        let veriLength = num2VarInt(self.verificationScript.len() / 2);
+        let invoLength = num2var_int(self.invocationScript.len() / 2);
+        let veriLength = num2var_int(self.verificationScript.len() / 2);
 
         invoLength + self.invocationScript + veriLength + self.verificationScript
     }
@@ -162,7 +162,7 @@ impl Witness {
         if self._scriptHash {
             self._scriptHash;
         } else if (self.verificationScript) {
-            self._scriptHash = reverseHex(hash160(self.verificationScript));
+            self._scriptHash = reverse_hex(hash160(self.verificationScript));
             return self._scriptHash;
         } else {
             throw
@@ -182,7 +182,7 @@ impl Witness {
 
     fn generateScriptHash(&mut self) {
 
-        self._scriptHash = reverseHex(hash160(&self.verificationScript.clone().as_bytes()));
+        self._scriptHash = reverse_hex(hash160(&self.verificationScript.clone().as_bytes()));
     }
 
 }

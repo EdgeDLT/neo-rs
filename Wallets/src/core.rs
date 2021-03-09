@@ -1,6 +1,6 @@
 use std::error::Error;
 use neo_core::convert::{hexstring2ab, ab2hexstring};
-use neo_core::misc::reverseHex;
+use neo_core::misc::reverse_hex;
 use neo_crypto::{FromBase58, hex, sha2};
 use neo_core::consts::ADDR_VERSION;
 use neo_core::crypto::hash160;
@@ -78,7 +78,7 @@ pub fn get_script_hash_from_public_key(public_key: string) -> Result<&str,dyn Er
 //  */
 // pub fn get_address_from_script_hash(script_hash: &str) -> Result<&str,dyn Error> {
 //
-//     let mut hash = reverseHex(script_hash);
+//     let mut hash = reverse_hex(script_hash);
 //
 //     let mut shaChecksum = &sha2::Sha256::digest(ADDR_VERSION + script_hash)[0..8];
 //

@@ -2,7 +2,6 @@ use openssl::{
     bn::{BigNum, BigNumContext},
     error::ErrorStack,
 };
-use crate::hex;
 
 pub fn append_leading_zeros(data: &[u8], bits_length: usize) -> Vec<u8> {
     if data.len() * 8 > bits_length {

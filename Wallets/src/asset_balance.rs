@@ -1,10 +1,10 @@
-use neo_core::fixed8::fixed8;
+use neo_core::fixed8::Fixed8;
 use crate::coin::Coin;
 use std::error::Error;
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash, Serialize, Deserialize)]
 pub struct AssetBalance {
-    balance: fixed8,
+    balance: Fixed8,
     unspent: Vec(Coin),
     spent: Vec(Coin),
     unconfirmed: Vec(Coin),
@@ -30,11 +30,11 @@ impl AssetBalance {
         &self.unconfirmed
     }
 
-    pub fn get_balance(&self) -> fixed8 {
+    pub fn get_balance(&self) -> Fixed8 {
         self.unspent
             .iter()
             .map(|p: &Coin| c.value())
-            .fold(fixed8(0), |acc, len| acc + len)
+            .fold(Fixed8(0), |acc, len| acc + len)
     }
 
 

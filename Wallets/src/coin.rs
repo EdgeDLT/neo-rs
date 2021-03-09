@@ -1,10 +1,10 @@
-use neo_core::fixed8::fixed8;
+use neo_core::fixed8::Fixed8;
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash, Serialize, Deserialize)]
 pub struct Coin<'a> {
     index: u32,
     txid: &'a str,
-    value: fixed8,
+    value: Fixed8,
 }
 
 
@@ -16,7 +16,7 @@ impl<'a> Coin<'a> {
     pub fn txid(&self) -> &'a str {
         self.txid
     }
-    pub fn value(&self) -> &fixed8 {
+    pub fn value(&self) -> &Fixed8 {
         &self.value
     }
 

@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use std::io::Error;
 use neo_crypto::hex;
 
@@ -7,7 +9,7 @@ use neo_crypto::hex;
  * @param str2 HEX string
  * @returns XOR output as a HEX string
  */
-pub fn hexXor<'a>(str1: &'a str, str2: &'a str) -> Result<String, Error> {
+pub fn hex_xor<'a>(str1: &'a str, str2: &'a str) -> Result<String, Error> {
     if str1.len() != str2.len() {
         ()
     }
@@ -26,9 +28,9 @@ pub fn hexXor<'a>(str1: &'a str, str2: &'a str) -> Result<String, Error> {
 /**
  * Reverses an array.
  * @example
- * reverseArray('abcd') = 'cdba'
+ * reverse_array('abcd') = 'cdba'
  */
-pub fn reverseArray<T>(arr: &mut [T]) -> Result<&[T], Error> {
+pub fn reverse_array<T>(arr: &mut [T]) -> Result<&[T], Error> {
 
     arr.reverse();
     Ok(arr)
@@ -38,9 +40,9 @@ pub fn reverseArray<T>(arr: &mut [T]) -> Result<&[T], Error> {
 /**
  * Reverses a HEX string, treating 2 chars as a byte.
  * @example
- * reverseHex('abcdef') = 'efcdab'
+ * reverse_hex('abcdef') = 'efcdab'
  */
-pub fn reverseHex(hex: &str) -> String {
+pub fn reverse_hex(hex: &str) -> String {
 
     let mut value = hex::decode(hex).unwrap();
     value.reverse();
@@ -51,19 +53,19 @@ pub fn reverseHex(hex: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use crate::misc::{reverseArray, reverseHex, hexXor};
+    use crate::misc::{reverse_array, reverse_hex, hex_xor};
 
     #[test]
     pub fn test_reverse_arr(){
         let mut arr = ['a','b','c','d'];
-         reverseArray(&mut arr);
+         reverse_array(&mut arr);
         assert_eq!(arr[0], 'd');
     }
 
     #[test]
     pub fn test_reverse_hex(){
 
-        let rev = reverseHex("fd2c2b");
+        let rev = reverse_hex("fd2c2b");
         assert_eq!("2b2cfd", rev);
     }
 
@@ -72,7 +74,7 @@ mod tests {
         let hex_1 = "fd2c2b414e81";
         let hex_2 = "dd71004ffc93";
 
-        let res =  hexXor(&hex_1,&hex_2).unwrap();
+        let res =  hex_xor(&hex_1, &hex_2).unwrap();
 
         assert_eq!(res,"205d2b0eb212")
 

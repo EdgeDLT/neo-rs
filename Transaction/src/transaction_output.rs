@@ -1,16 +1,16 @@
 use neo_core::{stringstream::StringStream, KeyPair::KeyPair};
 use neo_crypto::hex;
 use std::error::Error;
-use neo_core::misc::reverseHex;
+use neo_core::misc::reverse_hex;
 use crate::utils::get_asset_id_by_symbol;
-use neo_core::fixed8::fixed8;
+use neo_core::fixed8::Fixed8;
 use crate::txmodel::{Transaction, Transaction_Trait, transaction_param};
 
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash, Serialize, Deserialize)]
 pub struct TransactionOutput {
     asset_id: &'static str,
-    value: fixed8,
+    value: Fixed8,
     script_hash: &'static str,
 }
 
@@ -20,7 +20,7 @@ impl TransactionOutput {
     pub fn fromIntent(
         &self,
         symbol: &str,
-        value: fixed8,
+        value: Fixed8,
         address: &str,
     ) -> Result<TransactionOutput, Error> {
         let asset_id = get_asset_id_by_symbol(symbol)?;
@@ -44,9 +44,9 @@ impl transaction_param for TransactionOutput {
     }
 
     fn fromStream(&self, ss: &mut StringStream) -> Result<TransactionOutput, Error> {
-        let asset_id = reverseHex(ss.read(32)?.as_str())?;
+        let asset_id = reverse_hex(ss.read(32)?.as_str())?;
         let value = Fixed8.fromReverseHex(ss.read(8));
-        let script_hash = reverseHex(ss.read(20)?.as_str())?;
+        let script_hash = reverse_hex(ss.read(20)?.as_str())?;
 
         Ok(
             TransactionOutput { asset_id, value, script_hash }
@@ -55,9 +55,9 @@ impl transaction_param for TransactionOutput {
 
 
     fn serialize(&self) -> Result<String, Error> {
-        reverseHex(self.asset_id) +
+        reverse_hex(self.asset_id) +
             self.value.toReverseHex() +
-            reverseHex(self.script_hash)
+            reverse_hex(self.script_hash)
     }
 
     fn equals(&self, other: &TransactionOutput) -> bool {

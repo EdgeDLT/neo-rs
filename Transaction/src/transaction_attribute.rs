@@ -2,7 +2,7 @@ use crate::usage::{TxAttrUsage, toTxAttrUsage};
 use neo_core::stringstream::StringStream;
 use std::error::Error;
 use crate::txmodel::{ transaction_param};
-use neo_core::convert::{num2hexstring, num2VarInt, hex2int};
+use neo_core::convert::{num2hexstring, num2var_int, hex2int};
 
 const maxTransactionAttributeSize: u32 = 65535;
 
@@ -32,7 +32,7 @@ impl transaction_param for TransactionAttribute {
             0x02 | 0x03 => data = num2hexstring(usage as i32) + ss.read(32)?.as_str(),
             0x20 => data = ss.read(20)?.as_str(),
             0x81 => data = ss.read(hex2int(ss.read(1)?.as_str())? as u32)?.as_str(),
-            0x90 | u if u >= 0xf0 => data = ss.readVarBytes()?.as_str(),
+            0x90 | u if u >= 0xf0 => data = ss.read_var_bytes()?.as_str(),
             _ => unreachable!()
         }
 
@@ -44,7 +44,7 @@ impl transaction_param for TransactionAttribute {
 
         match &self.usage as i32 {
             0x81 => out += num2hexstring((&self.data.len() / 2) as i32),
-            0x90 | a if a >= 0xf0 => out += num2VarInt((&self.data.len() / 2) as i32),
+            0x90 | a if a >= 0xf0 => out += num2var_int((&self.data.len() / 2) as i32),
             0x02 | 0x03 => out += &self.data[2..2 + 64].clone(),
             _ => out += &self.data.clone(),
         }
