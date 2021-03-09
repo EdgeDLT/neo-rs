@@ -1,7 +1,7 @@
 # neo-rs
 A neo wallet project written in Rust Language.
 
-## 1. Function
+##  Function
 
 ### Implemented
 - Private Key
@@ -19,7 +19,7 @@ A neo wallet project written in Rust Language.
 - Contract
 
 
-## 2 Install Rust
+## Install Rust
 
 We recommend installing Rust using [rustup](https://www.rustup.rs/). You can install `rustup` as follows:
 
@@ -37,7 +37,7 @@ We recommend installing Rust using [rustup](https://www.rustup.rs/). You can ins
   Download the [Windows 32-bit executable](https://win.rustup.rs/i686) and follow the on-screen instructions.
 
 
-## 3 Build & Run
+## Build & Run
 
 Down load neo-rs from the github with command:
 
@@ -63,3 +63,14 @@ Private Key:     0x1d9d6b11b9570e50a8511de539be9d125dda022b7d65452acc03de3aa3e87
 WIF:             KxDH6p2nsKiYo5rvk8pvDSS2dPC2UBLoYeQu2Mq9ZnVPm1YfauSh
 Address:         AHV5J1bVXAvM3eVDrCXx34U1QQnNKeKX1F
 ```
+
+
+## Related Work
+This SDK is developed with help from:
+
+- [CityOfZion/nneo-python](https://github.com/CityOfZion/neo-python)
+- [CityOfZion/neon-js](https://github.com/CityOfZion/neon-js)
+- [nspcc-dev/neo-go](https://github.com/nspcc-dev/neo-go)
+- [Liaojinghui/NeoWalletForWeChat](https://github.com/Liaojinghui/NeoWalletForWeChat)
+- [neo-project/neo](https://github.com/neo-project/neo)
+- [neo-project/neo-vm](https://github.com/neo-project/neo-vm)
