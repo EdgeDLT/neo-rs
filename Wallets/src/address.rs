@@ -3,7 +3,7 @@ use std::{convert::TryFrom, fmt, str::FromStr};
 use regex::Regex;
 
 use neo_core::to_hex_string;
-use neo_crypto::{base58, hex};
+use neo_crypto::{base58, hex, ToBase58, FromBase58};
 use serde::Serialize;
 use tiny_keccak::keccak256;
 use wagyu_model::{Address, AddressError, PrivateKey, to_hex_string};
@@ -11,10 +11,11 @@ use wagyu_model::{Address, AddressError, PrivateKey, to_hex_string};
 use crate::format::Format;
 use crate::private_key::{PrivateKey, PrivateKeyError};
 use crate::public_key::{PublicKey, PublicKeyError};
+use neo_core::crypto::{hash160, checksum};
 
 /// Represents an  address
-#[derive(Debug)]
-pub struct Address(String);
+#[derive(Debug, FromStr,Eq, PartialEq, Copy, Clone, Hash, Serialize, Deserialize)]
+pub struct Address(pub String);
 
 impl Address {
     /// Returns the address corresponding to the given private key.
@@ -26,26 +27,28 @@ impl Address {
     pub fn from_public_key(public_key: &PublicKey) -> Result<Self, AddressError> {
         Ok(Self::checksum_address(public_key))
     }
-}
 
-impl Address {
     /// Returns the checksum address given a public key.
-    /// Adheres to EIP-55 (https://eips..org/EIPS/eip-55).
     pub fn checksum_address(public_key: &PublicKey) -> Self {
-        let hash = keccak256(&public_key.to_secp256k1_public_key().serialize()[1..]);
-        let address = to_hex_string(&hash[12..]).to_lowercase();
 
-        let hash = to_hex_string(&keccak256(address.as_bytes()));
-        let mut checksum_address = "0x".to_string();
-        for c in 0..40 {
-            let ch = match &hash[c..=c] {
-                "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" => address[c..=c].to_lowercase(),
-                _ => address[c..=c].to_uppercase(),
-            };
-            checksum_address.push_str(&ch);
-        }
+        let mut script: Vec<u8> = Vec::new();
+        script.push(33);
+        script.extend(&public_key);
+        script.push(172);
 
-        Address(checksum_address)
+        let hs = hash160(&script);
+
+        let mut addr = [0u8; 25];
+        addr[0] = 23;
+        addr[1..21].copy_from_slice(&hs);
+
+        let sum = &checksum(&addr[0..21])[0..4];
+
+        addr[21..25].copy_from_slice(sum);
+        let mut pubk = [0u8; 33];
+        pubk.clone_from_slice(pub_key.as_slice());
+
+        Address(addr.to_base58())
     }
 }
 
@@ -61,25 +64,7 @@ impl FromStr for Address {
     type Err = AddressError;
 
     fn from_str(address: &str) -> Result<Self, Self::Err> {
-        let regex = Regex::new(r"^0x").unwrap();
-        let address = address.to_lowercase();
-        let address = regex.replace_all(&address, "").to_string();
-
-        if address.len() != 40 {
-            return Err(AddressError::InvalidCharacterLength(address.len()));
-        }
-
-        let hash = to_hex_string(&keccak256(address.as_bytes()));
-        let mut checksum_address = "0x".to_string();
-        for c in 0..40 {
-            let ch = match &hash[c..=c] {
-                "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" => address[c..=c].to_lowercase(),
-                _ => address[c..=c].to_uppercase(),
-            };
-            checksum_address.push_str(&ch);
-        }
-
-        Ok(Address(checksum_address))
+        Ok(Address(address.to_string()))
     }
 }
 

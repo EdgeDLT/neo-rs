@@ -28,24 +28,19 @@ impl PublicKey {
         Address::from_public_key(self)
     }
 
-    /// Returns a public key given a secp256k1 public key.
-    pub fn from_secp256k1_public_key(public_key: secp256k1::PublicKey) -> Self {
-        Self(public_key)
-    }
-
-    /// Returns the secp256k1 public key of the public key
-    pub fn to_secp256k1_public_key(&self) -> secp256k1::PublicKey {
-        self.0.clone()
+    /// Returns the hex string of the public key
+    pub fn to_hex_string(&self) -> String {
+        hex::encode(&self.0)
     }
 }
 
 impl FromStr for PublicKey {
     type Err = PublicKeyError;
-
     fn from_str(public_key: &str) -> Result<Self, Self::Err> {
-        Ok(Self(secp256k1::PublicKey::parse_slice(
-            hex::decode(format!("04{}", public_key).as_str())?.as_slice(), None,
-        )?))
+        Ok(Self(
+            hex::decode(public_key).unwrap().as_slice()
+        )
+        )
     }
 }
 
