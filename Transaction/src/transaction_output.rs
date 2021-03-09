@@ -1,4 +1,4 @@
-use neo_core::{stringstream::StringStream, KeyPair::KeyPair};
+use neo_core::{stringstream::StringStream, KeyPair::KeyPair, KeyPair};
 use neo_crypto::hex;
 use std::error::Error;
 use neo_core::misc::reverse_hex;
@@ -16,7 +16,6 @@ pub struct TransactionOutput {
 
 
 impl TransactionOutput {
-
     pub fn fromIntent(
         &self,
         symbol: &str,
@@ -24,10 +23,10 @@ impl TransactionOutput {
         address: &str,
     ) -> Result<TransactionOutput, Error> {
         let asset_id = get_asset_id_by_symbol(symbol)?;
-        let script_hash = KeyPair::get_addr_hash_from_address(address)?;
+        let script_hash = KeyPair::get_addr_hash_from_address(address).unwrap();
 
         Ok(
-            TransactionOutput { asset_id, value, script_hash: hex::encode(script_hash).as_str() }
+            TransactionOutput { asset_id, value, script_hash: hex::encode(&script_hash).as_str() }
         )
     }
 }
@@ -55,9 +54,9 @@ impl transaction_param for TransactionOutput {
 
 
     fn serialize(&self) -> Result<String, Error> {
-        reverse_hex(self.asset_id) +
+        Ok(reverse_hex(self.asset_id) +
             self.value.toReverseHex() +
-            reverse_hex(self.script_hash)
+            reverse_hex(self.script_hash).as_str())
     }
 
     fn equals(&self, other: &TransactionOutput) -> bool {

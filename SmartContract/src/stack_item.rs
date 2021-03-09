@@ -18,15 +18,15 @@ pub enum StackItemType {
     Map = 0x82,
 }
 
-pub trait T_Item_Type{}
+pub trait TItemType {}
 
-impl T_Item_Type for StackItem<T> {}
-impl T_Item_Type for Vec<u8> {}
-impl T_Item_Type for bool {}
-impl T_Item_Type for StackItemMap{}
-impl T_Item_Type for i64{}
-impl T_Item_Type for Vec<StackItem<T>> {}
-impl T_Item_Type for Vec<StackItemMap> {}
+impl TItemType for StackItem<T> {}
+impl TItemType for Vec<u8> {}
+impl TItemType for bool {}
+impl TItemType for StackItemMap{}
+impl TItemType for i64{}
+impl TItemType for Vec<StackItem<T>> {}
+impl TItemType for Vec<StackItemMap> {}
 
 // #[derive(Debug, Ord, PartialOrd, Eq, PartialEq, Hash, Clone)]
 // pub struct StackItemValue<T> {
@@ -58,7 +58,7 @@ pub struct StackItemMap {
     value: Option<StackItem<T>>,
 }
 
-pub fn toStackItemType(tp: usize) -> Result<StackItemType, Error> {
+pub fn to_stack_item_type(tp: usize) -> Result<StackItemType, Error> {
     match StackItemType::try_from(te) {
         Ok(tp) => Ok(tp),
         Err(_) => Err(()),
@@ -68,13 +68,13 @@ pub fn toStackItemType(tp: usize) -> Result<StackItemType, Error> {
 /**
  * Determine if there's a nested set based on type
  */
-pub fn hasChildren(item_type: StackItemType) -> bool {
+pub fn has_children(item_type: StackItemType) -> bool {
     item_type == StackItemType.Array ||
         item_type == StackItemType.Struct ||
         item_type == StackItemType.Map
 }
 
-fn getDefaultValue<T>(item_type: StackItemType) -> Result<T, Error> {
+fn get_default_value<T>(item_type: StackItemType) -> Result<T, Error> {
     match item_type {
         StackItemType::Array |
         StackItemType::Struct |
@@ -96,13 +96,13 @@ impl StackItem<T> {
     }
 
 
-    fn _deserialize(&self, ss: &mut StringStream) -> Result<T_Item_Type, Error> {
+    fn _deserialize(&self, ss: &mut StringStream) -> Result<dyn TItemType, Error> {
 
-        let mut item = StackItem { item_type: toStackItemType(hex2int(reverse_hex(ss.read(1)?.as_str())?) as usize)?, value: None };
+        let mut item = StackItem { item_type: to_stack_item_type(hex2int(reverse_hex(ss.read(1)?.as_str())?) as usize)?, value: None };
 
         let l = ss.read_var_int();
         if l == 0 {
-            item.value = getDefaultValue(item.item_type)?;
+            item.value = get_default_value(item.item_type)?;
             Ok(&item)
         }
 
@@ -141,9 +141,9 @@ impl StackItem<T> {
 // if (obj.type == = undefined) {
 // throw new Error(`Invalid type provided: ${obj.type}`);
 // }
-// self.type = toStackItemType(obj.type );
+// self.type = to_stack_item_type(obj.type );
 // if (obj.value == = undefined) {
-// self.value = getDefaultValue(self.type );
+// self.value = get_default_value(self.type );
 // } else if (Array.isArray(obj.value)) {
 // if (self.type == = StackItemType.Array) {
 // self.value = (obj.value as StackItemLike[]).map(

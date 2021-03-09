@@ -11,7 +11,7 @@ use crate::txmodel::transaction;
 use crate::usage::{toTxAttrUsage, TxAttrUsage};
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash, Serialize, Deserialize)]
-pub(crate) struct BaseTransaction {
+pub struct BaseTransaction {
     tx_type: TransactionType,
     version: u8,
     attributes: Vec<TransactionAttribute>,

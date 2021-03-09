@@ -1,8 +1,8 @@
 mod contract_parameter;
 mod find_options;
-mod TriggerType;
-mod CallFlags;
-mod OpCode;
+mod trigger_type;
+mod call_flags;
+mod op_code;
 mod stack_item;
 
 #[cfg(test)]

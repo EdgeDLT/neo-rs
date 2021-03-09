@@ -1,5 +1,5 @@
 [package]
-name = "Transaction"
+name = "neo_tx"
 version = "0.1.0"
 authors = ["Jinghui Liao <jinghui@wayne.edu>"]
 edition = "2018"

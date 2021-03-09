@@ -7,6 +7,16 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+neo_core = { path = "../neo_core"}
+neo_sc = {path="../SmartContract"}
+neo_tx = { path = "../Transaction"}
+
+serde = { version = "1.0.123", default-features = false, features = ["derive"] }
+serde_json = { version = "1.0.62", default-features = false }
+url = "2.2.1"
+tokio = "1.2.0"
+jsonrpc-core = "17.0.0"
+
 json = "*"
 igd = "0.12.0"
 libp2p = "0.35.1"

@@ -1,6 +1,6 @@
 mod SmartContract {
     #[derive(Debug)]
-    enum FindOptions {
+    pub(crate) enum FindOptions {
         None = 0,
 
         KeysOnly = 1 << 0,

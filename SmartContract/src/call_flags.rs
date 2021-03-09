@@ -1,4 +1,5 @@
 mod SmartContract {
+
     #[derive(Debug)]
     enum CallFlags {
         None = 0,

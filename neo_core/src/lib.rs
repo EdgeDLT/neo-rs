@@ -31,5 +31,6 @@ pub mod fixed8;
 pub mod stringstream;
 pub mod consts;
 pub mod convert;
+pub mod helper;
 
 // pub use self::KeyPair::*;

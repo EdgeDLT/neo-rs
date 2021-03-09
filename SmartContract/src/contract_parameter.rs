@@ -1,9 +1,8 @@
-// import { Fixed8, reverse_hex } from "../u";
-// import { getScriptHashFromAddress, isAddress } from "../wallet";
-
 use num_enum::TryFromPrimitive;
 use std::convert::TryFrom;
 use std::error::Error;
+use neo_core::KeyPair;
+use neo_core::fixed8::Fixed8;
 
 
 #[derive(Debug, TryFromPrimitive)]
@@ -38,7 +37,7 @@ pub fn toContractParamType(
 pub struct ContractParam<T>
     where T: Clone {
     param_type: ContractParamType,
-    value: T,
+    value: Option<T>,
 }
 
 
@@ -50,15 +49,16 @@ impl ContractParam<T> {
     /**
      * Creates a String ContractParam.
      */
-    pub fn string(value: &str) -> Result<ContractParam<T>, dyn Error> {
-        Ok(ContractParam { param_type: ContractParamType::String, value })
+    pub fn string(value: &str) -> Result<ContractParam<&str>, dyn Error> {
+        Ok(ContractParam { param_type: ContractParamType::String, value:Some(value) })
     }
 
     /**
      * Creates a Boolean ContractParam. Does basic checks to convert value into a boolean.
      */
-    pub fn boolean(value: u32) -> Result<ContractParam<T>, dyn Error> {
-        Ok(ContractParam { param_type: ContractParamType::Boolean, value: value != 0 })
+    pub fn boolean(value: u32) -> Result<ContractParam<bool>, dyn Error> {
+
+        Ok(ContractParam { param_type: ContractParamType::Boolean, value:Some(value != 0) })
     }
 
     /**
@@ -66,10 +66,11 @@ impl ContractParam<T> {
      * @param {string} value - A 40 character long hexstring. Automatically converts an address to scripthash if provided.
      * @return {ContractParam}
      */
-    pub fn hash160(value: &str) -> Result<ContractParam<T>, dyn Error> {
-        let mut value = get_script_hash_from_address(value);
+    pub fn hash160(value: &str) -> Result<ContractParam<[u8]>, dyn Error> {
 
-        Ok(ContractParam { param_type: ContractParamType::hash160, value })
+        let mut value = *KeyPair::get_addr_hash_from_address(value).unwrap();
+
+        Ok(ContractParam { param_type: ContractParamType::hash160, value:Some(value) })
     }
 
     /**
@@ -79,14 +80,14 @@ impl ContractParam<T> {
      * ContractParam.integer(128)
      * ContractParam.integer("128")
      */
-    pub fn integer(value: &fixed8) -> Result<ContractParam<T>, dyn Error> {
+    pub fn integer(value: &Fixed8) -> Result<ContractParam<Fixed8>, dyn Error> {
 
-        // const num =
-        //   typeof value === "string"
-        //     ? value.split(".")[0]
-        //     : Math.round(value).toString();
-        // return new ContractParam(ContractParamType.Integer, num);
-        Ok(ContractParam { param_type: ContractParamType::Integer, value })
+        Ok(ContractParam
+            {
+            param_type: ContractParamType::Integer,
+            value:Some(value.clone()),
+            }
+        )
     }
 
     /**
@@ -95,14 +96,19 @@ impl ContractParam<T> {
      * @param format The format that self value represents. Different formats are parsed differently.
      * @param args Additional arguments such as decimal precision
      */
-    pub fn byteArray(
+    pub fn byteArray<T>(
         &self,
         value: &[u8],
         format: &str,
         // ...args: any[]
     ) -> Result<ContractParam<T>, dyn Error> {
         match format.to_lowercase().as_str() {
-            "address" => Ok(ContractParam { param_type: ContractParamType::ByteArray, value: reverseHex(get_script_hash_from_address(&value)}),
+            "address" => Ok(
+                ContractParam {
+                param_type: ContractParamType::ByteArray,
+                value: reverseHex(KeyPair::get_addr_hash_from_address(value.to_base58().as_str())),
+            }
+            ),
 
             "Fixed8" => {
             //TODO:
@@ -125,10 +131,10 @@ impl ContractParam<T> {
                 //     ContractParamType.ByteArray,
                 //     value.toReverseHex().slice(0, 16)
                 //   );}
-              Ok(ContractParam { param_type: ContractParamType::ByteArray, value })
+              Ok(ContractParam { param_type: ContractParamType::ByteArray, value:Some(value) })
 
             }
-            _ => Ok(ContractParam { param_type: ContractParamType::ByteArray, value })
+            _ => Ok(ContractParam { param_type: ContractParamType::ByteArray, value:Some(value) })
         }
     }
 
@@ -136,10 +142,8 @@ impl ContractParam<T> {
      * Creates an Array ContractParam.
      * @param params params to be encapsulated in an array.
      */
-    pub fn array(&self, params: &[ContractParam<T>]) -> Result<ContractParam<T>, dyn Error> {
-        Ok(ContractParam { param_type: ContractParamType::Array, value: params.clone() })
-
-        // return new ContractParam(ContractParamType.Array, params);
+    pub fn array(&self, params: Vec(ContractParam<T>)) -> Result<ContractParam<Vec(ContractParam<T>)>, dyn Error> {
+        Ok(ContractParam { param_type: ContractParamType::Array, value:Some(params)})
     }
 
 
@@ -163,20 +167,18 @@ impl ContractParam<T> {
     //   }
     // }
 
-    pub fn get_symbol(&self) -> &str {
-        "ContractParam:" + ContractParamType[&self.param_type];
+    pub fn get_symbol(&self) -> &'static str {
+
+        "ContractParam:" + ContractParamType[&self.param_type]
     }
 
 
-    pub fn export(&self) -> Result<ContractParam<T>, dyn Error> {
+    pub fn export<T>(&self) -> Result<ContractParam<T>, dyn Error> {
 
-        // let  pubedValue = Array.isArray(self.value)
-        //   ? self.value.map((cp) => cp.pub())
-        //   : self.value;
-        Ok(ContractParam { param_type: self.param_type.clone(), value: self.value.clone() })
+        Ok(ContractParam { param_type: self.param_type.clone(), value: Some(self.value.clone()) })
     }
 
-    pub fn equal(&self, other: &ContractParamLike) -> bool {
+    pub fn equal<T>(&self, other: &ContractParam<T>) -> bool {
 
         if
             self.param_type == &other.param_type &&
