@@ -1,13 +1,14 @@
 use std::{fmt, fmt::Display, str::FromStr};
-
+use neo_core::no_std::*;
 use neo_core::neo_type::PRIVATE_KEY_BIN_LEN;
+use neo_core::utilities::*;
 use neo_crypto::{base58, hex};
-use rand::Rng;
 use crate::public_key::PublicKey;
 use crate::address::{AddressError, Address};
-
+use serde::{Serialize,Deserialize};
+use failure::Fail;
 /// Represents an  private key
-#[derive(Debug, Eq, PartialEq, Copy, Clone, Hash, Serialize, Deserialize, FromStr, Send, Sync, Sized)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone, Hash, Serialize)]
 pub struct PrivateKey(pub [u8; PRIVATE_KEY_BIN_LEN]);
 
 impl PrivateKey {
@@ -29,13 +30,13 @@ impl PrivateKey {
     }
 
     /// Returns a private key .
-    pub fn from_secp256k1_secret_key(secret_key: &secp256k1::SecretKey) -> Self {
-        Self(secret_key.clone())
-    }
+    // pub fn from_secp256k1_secret_key(secret_key: &secp256k1::SecretKey) -> Self {
+    //     Self(secret_key.clone())
+    // }
 
     /// Returns the secp256k1 secret key of the private key.
-    pub fn to_secp256k1_secret_key(&self) -> secp256k1::SecretKey {
-        self.0.clone()
+    pub fn to_hex_string(&self) -> String {
+        self.0.to_hex()
     }
 }
 
@@ -43,12 +44,13 @@ impl FromStr for PrivateKey {
     type Err = PrivateKeyError;
 
     fn from_str(private_key: &str) -> Result<Self, PrivateKeyError> {
+
         if private_key.len() != 64 {
             return Err(PrivateKeyError::InvalidCharacterLength(private_key.len()));
         }
 
         let secret_key = hex::decode(private_key)?;
-        Ok(Self(secp256k1::SecretKey::parse_slice(&secret_key)?))
+        Ok(Self(secret_key.as_slice()))
     }
 }
 
@@ -63,6 +65,7 @@ impl Display for PrivateKey {
 
 #[derive(Debug, Fail)]
 pub enum PrivateKeyError {
+
     #[fail(display = "{}: {}", _0, _1)]
     Crate(&'static str, String),
 
@@ -88,8 +91,8 @@ pub enum PrivateKeyError {
     UnsupportedFormat,
 }
 
-impl From<crate::no_std::io::Error> for PrivateKeyError {
-    fn from(error: crate::no_std::io::Error) -> Self {
+impl From<neo_core::no_std::io::Error> for PrivateKeyError {
+    fn from(error: neo_core::no_std::io::Error) -> Self {
         PrivateKeyError::Crate("crate::no_std::io", format!("{:?}", error))
     }
 }
@@ -106,23 +109,12 @@ impl From<base58::FromBase58Error> for PrivateKeyError {
     }
 }
 
-impl From<bech32::Error> for PrivateKeyError {
-    fn from(error: bech32::Error) -> Self {
-        PrivateKeyError::Crate("bech32", format!("{:?}", error))
-    }
-}
-
 impl From<hex::FromHexError> for PrivateKeyError {
     fn from(error: hex::FromHexError) -> Self {
         PrivateKeyError::Crate("hex", format!("{:?}", error))
     }
 }
 
-impl From<rand_core::Error> for PrivateKeyError {
-    fn from(error: rand_core::Error) -> Self {
-        PrivateKeyError::Crate("rand", format!("{:?}", error))
-    }
-}
 
 
 #[cfg(test)]
@@ -139,36 +131,20 @@ mod tests {
         assert_eq!(*expected_address, address);
     }
 
-    fn test_from_secp256k1_secret_key(
-        expected_private_key: &str,
-        expected_public_key: &str,
-        expected_address: &str,
-        secret_key: secp256k1::SecretKey,
-    ) {
-        let private_key = PrivateKey::from_secp256k1_secret_key(&secret_key);
-        assert_eq!(secret_key, private_key.0);
-        assert_eq!(expected_private_key, private_key.to_string());
-        assert_eq!(expected_public_key, private_key.to_public_key().to_string());
-        assert_eq!(
-            expected_address,
-            private_key.to_address().unwrap().to_string()
-        );
-    }
-
-    fn test_from_str(
-        expected_secret_key: &secp256k1::SecretKey,
-        expected_public_key: &str,
-        expected_address: &str,
-        private_key: &str,
-    ) {
-        let private_key = PrivateKey::from_str(private_key).unwrap();
-        assert_eq!(*expected_secret_key, private_key.0);
-        assert_eq!(expected_public_key, private_key.to_public_key().to_string());
-        assert_eq!(
-            expected_address,
-            private_key.to_address().unwrap().to_string()
-        );
-    }
+    // fn test_from_str(
+    //     expected_secret_key: &secp256k1::SecretKey,
+    //     expected_public_key: &str,
+    //     expected_address: &str,
+    //     private_key: &str,
+    // ) {
+    //     let private_key = PrivateKey::from_str(private_key).unwrap();
+    //     assert_eq!(*expected_secret_key, private_key.0);
+    //     assert_eq!(expected_public_key, private_key.to_public_key().to_string());
+    //     assert_eq!(
+    //         expected_address,
+    //         private_key.to_address().unwrap().to_string()
+    //     );
+    // }
 
     fn test_to_str(expected_private_key: &str, private_key: &PrivateKey) {
         assert_eq!(expected_private_key, private_key.to_string());

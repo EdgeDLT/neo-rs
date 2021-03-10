@@ -1,17 +1,16 @@
-use std::{fmt, fmt::Display, str::FromStr};
-
 use neo_core::neo_type::PUBLIC_KEY_BIN_LEN;
-use neo_crypto::{base58, hex};
-use secp256k1;
-use wagyu_model::{Address, AddressError, PublicKey, PublicKeyError};
-
-use crate::address::{Address, AddressError};
-use crate::format::Format;
+use neo_core::utilities::*;
 use crate::private_key::PrivateKey;
-use neo_crypto::ecdsa::{ECECDSA, CipherSuite};
-
+use neo_crypto::ecdsa::{CipherSuite, ECECDSA};
+use crate::address::{AddressError, Address};
+use neo_crypto::{hex, base58};
+use std::str::FromStr;
+use std::fmt::Display;
+use std::fmt;
+use serde::{Serialize,Deserialize};
+use failure::Fail;
 /// Represents an  public key
-#[derive(Debug, Eq, PartialEq, Copy, Clone, Hash, Serialize, Deserialize, FromStr, Send, Sync, Sized)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone, Hash, Serialize, Deserialize)]
 pub struct PublicKey(pub [u8; PUBLIC_KEY_BIN_LEN]);
 
 impl PublicKey {
@@ -35,6 +34,7 @@ impl PublicKey {
 }
 
 impl FromStr for PublicKey {
+
     type Err = PublicKeyError;
     fn from_str(public_key: &str) -> Result<Self, Self::Err> {
         Ok(Self(
@@ -75,8 +75,8 @@ pub enum PublicKeyError {
     NoViewingKey,
 }
 
-impl From<crate::no_std::io::Error> for PublicKeyError {
-    fn from(error: crate::no_std::io::Error) -> Self {
+impl From<neo_core::no_std::io::Error> for PublicKeyError {
+    fn from(error: neo_core::no_std::io::Error) -> Self {
         PublicKeyError::Crate("crate::no_std::io", format!("{:?}", error))
     }
 }
@@ -87,11 +87,6 @@ impl From<base58::FromBase58Error> for PublicKeyError {
     }
 }
 
-impl From<bech32::Error> for PublicKeyError {
-    fn from(error: bech32::Error) -> Self {
-        PublicKeyError::Crate("bech32", format!("{:?}", error))
-    }
-}
 
 impl From<hex::FromHexError> for PublicKeyError {
     fn from(error: hex::FromHexError) -> Self {

@@ -14,3 +14,6 @@ neo_core = { path = "../neo_core"}
 regex = "1.4.3"
 scrypt = { version = "0.6.3", default-features = false }
 openssl = { version = "0.10", features = ["vendored"] }
+serde = { version = "1.0.123", default-features = false, features = ["derive"] }
+serde_json = { version = "1.0.62", default-features = false }
+failure = { version = "0.1.8" }

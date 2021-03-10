@@ -1,17 +1,8 @@
-use openssl::{
-    bn::{BigNum, BigNumContext},
-    error::ErrorStack,
-};
-
-use neo_core::{neo_type, SignatureHex, PublicKeyHex, KeyPair};
-use neo_crypto::{hex, sha2};
-use std::io::Error;
-use crate::nep2;
-
-use neo_crypto::sha2::Digest;
 use neo_core::neo_type::{SignatureHex, PublicKeyHex};
+use openssl::bn::BigNum;
+use neo_crypto::hex;
 use neo_crypto::ecdsa::{ECECDSA, CipherSuite, Ecdsa};
-use std::fmt::{Display, Formatter};
+use std::error::Error;
 
 #[derive(Debug)]
 pub struct signing {}
@@ -35,7 +26,7 @@ impl signing {
      * @param hex Hex&str to hash.
      * @param privateKey Hex&str or WIF format.
      */
-    pub fn sign(&self, hex: &str, private_key: &str) -> Result<SignatureHex, Error> {
+    pub fn sign(&self, hex: &str, private_key: &str) -> Result<SignatureHex, dyn Error> {
         let mut pri_key = Vec::new();
         match isWIF(private_key) {
             true => pri_key = KeyPair::KeyPair::get_private_key_from_wif(private_key)?.to_vec(),
@@ -44,7 +35,7 @@ impl signing {
 
         let msg = hex::decode(hex)?;
         let mut ecdsa = ECECDSA::from_suite(CipherSuite::P256_SHA256_TAI).unwrap();
-        Ok(hex::encode(ecdsa.prove(&pri_key, &msg).unwrap()).as_str())
+        Ok(hex::encode(ecdsa.prove(&pri_key, &msg).unwrap()).as_str().parse().unwrap())
     }
 
     /**

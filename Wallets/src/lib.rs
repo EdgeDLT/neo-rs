@@ -1,15 +1,16 @@
+
 pub mod verify;
 pub mod nep2;
 pub mod nep6;
 pub mod signing;
 pub mod core;
-mod coin;
-mod claim_item;
-mod asset_balance;
-mod private_key;
-mod public_key;
-mod address;
-mod wif;
+pub mod coin;
+pub mod claim_item;
+pub mod asset_balance;
+pub mod private_key;
+pub mod public_key;
+pub mod address;
+pub mod wif;
 
 
 #[cfg(test)]

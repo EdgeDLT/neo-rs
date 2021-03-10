@@ -4,17 +4,15 @@ use regex::Regex;
 
 use neo_core::to_hex_string;
 use neo_crypto::{base58, hex, ToBase58, FromBase58};
-use serde::Serialize;
-use tiny_keccak::keccak256;
-use wagyu_model::{Address, AddressError, PrivateKey, to_hex_string};
+use serde::{Serialize,Deserialize};
+use failure::Fail;
 
-use crate::format::Format;
 use crate::private_key::{PrivateKey, PrivateKeyError};
 use crate::public_key::{PublicKey, PublicKeyError};
 use neo_core::crypto::{hash160, checksum};
 
 /// Represents an  address
-#[derive(Debug, FromStr,Eq, PartialEq, Copy, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug,Eq, PartialEq, Copy, Clone, Hash, Serialize, Deserialize)]
 pub struct Address(pub String);
 
 impl Address {
@@ -74,6 +72,7 @@ impl fmt::Display for Address {
     }
 }
 
+
 #[derive(Debug, Fail)]
 pub enum AddressError {
     #[fail(display = "{}: {}", _0, _1)]
@@ -116,15 +115,15 @@ pub enum AddressError {
     PublicKeyError(PublicKeyError),
 }
 
-impl From<crate::no_std::io::Error> for AddressError {
-    fn from(error: crate::no_std::io::Error) -> Self {
-        AddressError::Crate("crate::no_std::io", format!("{:?}", error))
+impl From<neo_core::no_std::io::Error> for AddressError {
+    fn from(error: neo_core::no_std::io::Error) -> Self {
+        AddressError::Crate("neo_core::no_std::io", format!("{:?}", error))
     }
 }
 
-impl From<crate::no_std::FromUtf8Error> for AddressError {
-    fn from(error: crate::no_std::FromUtf8Error) -> Self {
-        AddressError::Crate("crate::no_std", format!("{:?}", error))
+impl From<neo_core::no_std::FromUtf8Error> for AddressError {
+    fn from(error: neo_core::no_std::FromUtf8Error) -> Self {
+        AddressError::Crate("neo_core::no_std", format!("{:?}", error))
     }
 }
 
@@ -152,17 +151,6 @@ impl From<base58::FromBase58Error> for AddressError {
     }
 }
 
-impl From<base58_monero::base58::Error> for AddressError {
-    fn from(error: base58_monero::base58::Error) -> Self {
-        AddressError::Crate("base58_monero", format!("{:?}", error))
-    }
-}
-
-impl From<bech32::Error> for AddressError {
-    fn from(error: bech32::Error) -> Self {
-        AddressError::Crate("bech32", format!("{:?}", error))
-    }
-}
 
 impl From<core::str::Utf8Error> for AddressError {
     fn from(error: core::str::Utf8Error) -> Self {
@@ -176,16 +164,9 @@ impl From<hex::FromHexError> for AddressError {
     }
 }
 
-impl From<rand_core::Error> for AddressError {
-    fn from(error: rand_core::Error) -> Self {
-        AddressError::Crate("rand", format!("{:?}", error))
-    }
-}
-
 
 #[cfg(test)]
 mod tests {
-    use wagyu_model::public_key::PublicKey;
 
     use super::*;
 

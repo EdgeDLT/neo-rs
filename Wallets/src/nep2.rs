@@ -1,22 +1,11 @@
-use crate::no_std::*;
-use rand::Rng;
-use std::io::Error;
-use std::{fmt, fmt::Display, str::FromStr, convert::{TryInto, TryFrom}};
-use scrypt::{scrypt, Params};
-
-use crate::utilities::crypto::{checksum, hash160};
-use neo_crypto::{ecdsa::{CipherSuite, Ecdsa, ECECDSA},
-                 base58::{FromBase58, ToBase58},
-                 hex,
-                 aes::{Aes,
-                       cipher::{generic_array::GenericArray,
-                                {BlockCipher, NewBlockCipher}},
-                 }};
-
-use neo_core::{neo_type, PrivateKeyHex, PrivateKeyBin, SCRYPT_DK_LEN, SCRYPT_LOG_N, SCRYPT_R, SCRYPT_P, NEP_HEADER_1, NEP_HEADER_2, NEP_FLAG};
-use neo_core::KeyPair;
 use neo_core::neo_type::{PrivateKeyHex, PrivateKeyBin};
-use neo_core::consts::{SCRYPT_DK_LEN, SCRYPT_LOG_N, SCRYPT_R, SCRYPT_P, NEP_HEADER_1, NEP_HEADER_2, NEP_FLAG};
+use std::error::Error;
+use neo_core::KeyPair;
+use neo_core::consts::{SCRYPT_DK_LEN, SCRYPT_R, SCRYPT_P, SCRYPT_LOG_N, NEP_HEADER_1, NEP_HEADER_2, NEP_FLAG};
+use scrypt::Params;
+use neo_crypto::aes::Aes;
+use std::convert::{TryFrom, TryInto};
+use neo_crypto::{ToBase58, FromBase58, hex};
 
 pub struct nep2 {}
 

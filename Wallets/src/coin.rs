@@ -1,6 +1,7 @@
 use neo_core::fixed8::Fixed8;
+use neo_core::no_std::*;
 
-#[derive(Debug, Eq, PartialEq, Copy, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone, Hash)]
 pub struct Coin<'a> {
     index: u32,
     txid: &'a str,

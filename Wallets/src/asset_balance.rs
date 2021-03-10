@@ -2,7 +2,7 @@ use neo_core::fixed8::Fixed8;
 use crate::coin::Coin;
 use std::error::Error;
 
-#[derive(Debug, Eq, PartialEq, Copy, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone, Hash)]
 pub struct AssetBalance {
     balance: Fixed8,
     unspent: Vec(Coin),
