@@ -1,27 +1,18 @@
-// import { hash160, num2var_int, reverse_hex, StringStream } from "../../u";
-// import {
-//   Account,
-//   getPublicKeysFromVerificationScript,
-//   getSignaturesFromInvocationScript,
-//   getSigningThresholdFromVerificationScript,
-//   get_verification_script_from_public_key,
-//   verify,
-// } from "../../wallet";
-
-
 use neo_core::convert::num2var_int;
-use crate::txmodel::Transaction;
+use neo_core::crypto::hash160;
+use neo_core::misc::reverse_hex;
 use neo_core::no_std::io::Error;
 use neo_core::stringstream::StringStream;
+use neo_crypto::hex;
 use neo_wallet::verify::verify;
-use neo_core::misc::reverse_hex;
-use neo_core::crypto::hash160;
+
+use crate::txmodel::Transaction;
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash, Serialize, Deserialize)]
 pub struct Witness {
-    invocationScript: &'static str,
-    verificationScript: &'static str,
-    _scriptHash: Option<&'static str>,
+    invocation_script: &'static str,
+    verification_script: &'static str,
+    _script_hash: Option<&'static str>,
 }
 
 
@@ -32,28 +23,38 @@ impl Transaction for Witness {
     }
 
     fn fromStream(&self, ss: &mut StringStream) -> Result<Witness, Error> {
-        let invocationScript = ss.read_var_bytes()?.as_str();
-        let verificationScript = ss.read_var_bytes()?.as_str();
-        Ok(Witness({ invocationScript, verificationScript })
+        let invocation_script = ss.read_var_bytes().as_str();
+        let verification_script = ss.read_var_bytes().as_str();
+
+        Ok(Witness {
+            invocation_script,
+            verification_script,
+            _script_hash: None,
+        })
     }
 
-    fn serialize(&self) -> Result<String, Error> {
-        let invoLength = num2var_int(self.invocationScript.len() / 2);
-        let veriLength = num2var_int(self.verificationScript.len() / 2);
+    fn serialize(&self) -> String {
+        let mut invo_length = num2var_int((self.invocation_script.len() / 2) as i64);
+        let veri_length = num2var_int((self.verification_script.len() / 2) as i64);
 
-        invoLength + self.invocationScript + veriLength + self.verificationScript
+        invo_length.push_str(&self.invocation_script);
+        invo_length.push_str(veri_length.as_str());
+        invo_length.push_str(&self.verification_script);
+
+        String::from(invo_length)
     }
 
     fn equals(&self, other: &Witness) -> bool {
-        self.invocationScript == other.invocationScript &&
-            self.verificationScript == other.verificationScript
+        self.invocation_script == other.invocation_script &&
+            self.verification_script == other.verification_script
     }
 
     fn export(&self) -> Result<Witness, Error> where
         Self: Sized {
         Ok(Witness {
-            invocationScript: self.invocationScript,
-            verificationScript: self.verificationScript,
+            invocation_script: self.invocation_script,
+            verification_script: self.verification_script,
+            _script_hash: None,
         })
     }
 }
@@ -64,12 +65,11 @@ impl Transaction for Witness {
  * For example, the most common witness is the VM Script that pushes the ECDSA signature into the VM and calling CHECKSIG to prove the authority to spend the TransactionInputs in the transaction.
  */
 impl Witness {
+    pub fn from_signature(&self, sig: &str, publicKey: &str) -> Witness {
+        let invocation_script = "40" + sig;
+        let verification_script = getVerificationScriptFromPublicKey(publicKey);
 
-    pub fn fromSignature(&self, sig: &str, publicKey: &str) -> Witness {
-        let invocationScript = "40" + sig;
-        let verificationScript = getVerificationScriptFromPublicKey(publicKey);
-
-        Witness { invocationScript, verificationScript, _scriptHash: None }
+        Witness { invocation_script, verification_script, _script_hash: None }
     }
 
 
@@ -77,25 +77,24 @@ impl Witness {
      * Builds a multi-sig Witness object.
      * @param tx Hexstring to be signed.
      * @param sigs Unordered list of signatures.
-     * @param acctOrVerificationScript Account or verification script. Account needs to be the multi-sig account and not one of the public keys.
+     * @param acct_or_verification_script Account or verification script. Account needs to be the multi-sig account and not one of the public keys.
      */
-    pub fn buildMultiSig(
+    pub fn build_multi_sig(
         &self,
         tx: &str,
         sigs: &[Witness],
-        acctOrVerificationScript: &str,
+        acct_or_verification_script: &str,
     ) -> Witness {
+        let verification_script = acct_or_verification_script;
 
-        let verificationScript =acctOrVerificationScript;
 
+        let public_keys = getPublicKeysFromVerificationScript(verification_script);
 
-        let publicKeys = getPublicKeysFromVerificationScript(verificationScript);
-
-        let orderedSigs = publicKeys.len()).fill("");
+        let orderedSigs = public_keys.len().fill("");
 
         sigs.forEach((element) => {
             if (typeof element == = "string") {
-                let position = publicKeys.findIndex((key) =>
+                let position = public_keys.findIndex((key) =>
                 verify(tx, element, key)
                 );
 
@@ -104,7 +103,6 @@ impl Witness {
                 }
 
                 orderedSigs[position] = element;
-
             } else if (element
             instanceof
             Witness) {
@@ -112,29 +110,27 @@ impl Witness {
                     element.verificationScript
                 );
 
-                if (keys.len() != = 1) {
+                if (keys.len() != 1) {
                     throw
                     new
                     Error("Given witness contains more than 1 public key!");
                 }
 
-                let position = publicKeys.indexOf(keys[0]);
+                let position = public_keys.indexOf(keys[0]);
 
                 orderedSigs[position] = getSignaturesFromInvocationScript(
                     element.invocationScript
                 )[0];
             } else {
-                throw
-                new
-                Error("Unable to process given signature");
+                panic!("Unable to process given signature");
             }
         });
 
         let signingThreshold = getSigningThresholdFromVerificationScript(
-            verificationScript
+            verification_script
         );
 
-        let validSigs = orderedSigs.filter((s) => s != = "");
+        let validSigs = orderedSigs.filter((s) => s != "");
 
         if (validSigs.len() < signingThreshold) {
             throw
@@ -149,40 +145,37 @@ impl Witness {
         }
 
         Witness {
-            invocationScript: validSigs
+            invocation_script: validSigs
                 .slice(0, signingThreshold)
                 .map((s) => "40" + s)
             .join(""),
-            verificationScript,
+            verification_script,
+            _script_hash: None,
         }
     }
 
 
-    pub fn get_scriptHash(&self) -> &str {
-        if self._scriptHash {
-            self._scriptHash;
-        } else if (self.verificationScript) {
-            self._scriptHash = reverse_hex(hash160(self.verificationScript));
-            return self._scriptHash;
+    pub fn get_script_hash(&mut self) -> String {
+        if self._script_hash {
+            return self._script_hash.unwrap().to_string();
+        } else if self.verification_script {
+            self.generate_script_hash();
+            return self._script_hash.unwrap().to_string();
         } else {
-            throw
-            new
-            Error(
-                "Unable to produce scriptHash from empty verificationScript"
-            );
+            panic!("Unable to produce scriptHash from empty verification_script");
         }
     }
 
-    pub fn set_scriptHash(&mut self, value:&str)->&self {
-    if self.verificationScript {
-    panic!("Unable to set scriptHash when verificationScript is not empty");
-    }
-    self._scriptHash = Option::from(value);
-    }
-
-    fn generateScriptHash(&mut self) {
-
-        self._scriptHash = reverse_hex(hash160(&self.verificationScript.clone().as_bytes()));
+    pub fn set_script_hash(&mut self, value: &str) {
+        if self.verification_script {
+            panic!("Unable to set scriptHash when verification_script is not empty");
+        }
+        self._script_hash = Option::from(value);
     }
 
+    fn generate_script_hash(&mut self) {
+        let hash = hash160(&hex::decode(&self.verification_script).unwrap()).as_slice();
+        let hx = hash.to_hex();
+        self._script_hash = Option::from(reverse_hex(hx).as_str());
+    }
 }
