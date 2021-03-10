@@ -1,18 +1,23 @@
 use std::{convert::TryFrom, fmt, str::FromStr};
 
-use regex::Regex;
-
-use neo_core::to_hex_string;
-use neo_crypto::{base58, hex, ToBase58, FromBase58};
-use serde::{Serialize,Deserialize};
 use failure::Fail;
+use openssl::sha::sha224;
+use regex::Regex;
+use serde::{Deserialize, Serialize};
+
+use neo_core::consts::ADDR_VERSION;
+use neo_core::convert::ab2hexstring;
+use neo_core::crypto::{checksum, hash160};
+use neo_core::misc::reverse_hex;
+use neo_core::to_hex_string;
+use neo_crypto::{base58, FromBase58, hex, sha2, ToBase58};
+use neo_crypto::sha2::Digest;
 
 use crate::private_key::{PrivateKey, PrivateKeyError};
 use crate::public_key::{PublicKey, PublicKeyError};
-use neo_core::crypto::{hash160, checksum};
 
 /// Represents an  address
-#[derive(Debug,Eq, PartialEq, Copy, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone, Hash, Serialize, Deserialize)]
 pub struct Address(pub String);
 
 impl Address {
@@ -26,9 +31,27 @@ impl Address {
         Ok(Self::checksum_address(public_key))
     }
 
+    pub fn from_script_hash(script_hash: &str) -> Result<Self, AddressError> {
+        let script_hash = hex::decode(reverse_hex(script_hash)).unwrap();
+
+        let mut addr = [0u8; 25];
+        addr[0] = 23;
+        addr[1..21].copy_from_slice(&script_hash);
+
+        let sum = &checksum(&addr[0..21])[0..4];
+        addr[21..25].copy_from_slice(sum);
+
+        Ok(Self(addr.to_base58()))
+    }
+
+    pub fn to_script_hash(&self) -> String {
+        let h = self.0.from_base58().unwrap();
+        let hash = ab2hexstring(h.as_slice());
+        reverse_hex(&hash[2..42])
+    }
+
     /// Returns the checksum address given a public key.
     pub fn checksum_address(public_key: &PublicKey) -> Self {
-
         let mut script: Vec<u8> = Vec::new();
         script.push(33);
         script.extend(&public_key);
@@ -53,16 +76,16 @@ impl Address {
 impl<'a> TryFrom<&'a str> for Address {
     type Error = AddressError;
 
-    fn try_from(address: &'a str) -> Result<Self, Self::Error> {
-        Self::from_str(address)
+    fn try_from(addr: &'a str) -> Result<Self, Self::Error> {
+        Self::from_str(addr)
     }
 }
 
 impl FromStr for Address {
     type Err = AddressError;
 
-    fn from_str(address: &str) -> Result<Self, Self::Err> {
-        Ok(Address(address.to_string()))
+    fn from_str(addr: &str) -> Result<Self, Self::Err> {
+        Ok(Address(addr.to_string()))
     }
 }
 
@@ -167,7 +190,6 @@ impl From<hex::FromHexError> for AddressError {
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
 
     fn test_from_private_key(expected_address: &str, private_key: &PrivateKey) {

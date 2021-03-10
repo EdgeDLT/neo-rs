@@ -6,7 +6,7 @@ pub const WIF_KEY_BIN_LEN: usize = 38;
 pub const PRIVATE_KEY_HEX_LEN: usize = 64;
 pub const PUBLIC_KEY_HEX_LEN: usize = 128;
 pub const ADDRESS_HEX_LEN: usize = 32;
-pub const WIF_KEY_HEX_LEN: usize = 38;
+pub const WIF_KEY_HEX_LEN: usize = 52;
 
 pub const SCRIPT_HASH_BIN_LEN: usize = 20;
 

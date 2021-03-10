@@ -17,7 +17,7 @@ impl PublicKey {
     /// Returns the address corresponding to the given public key.
     pub fn from_private_key(private_key: &PrivateKey) -> Self {
         let mut ecdsa = ECECDSA::from_suite(CipherSuite::P256_SHA256_TAI).unwrap();
-        let mut pub_key = ecdsa.derive_public_key(&sec_key.as_slice()).unwrap();
+        let mut pub_key = ecdsa.derive_public_key(&private_key.0).unwrap();
 
         Self(pub_key.as_slice())
     }

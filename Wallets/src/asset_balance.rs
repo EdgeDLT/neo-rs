@@ -20,13 +20,13 @@ pub struct AssetBalance {
  */
 impl AssetBalance {
 
-    pub fn unspent<'a>(&self) -> &Vec<(Coin<'a>), Error> {
+    pub fn unspent<'a>(&self) -> &Vec<(Coin<'a>), dyn Error> {
         &self.unspent
     }
-    pub fn spent<'a>(&self) -> &Vec<(Coin<'a>), Error> {
+    pub fn spent<'a>(&self) -> &Vec<(Coin<'a>), dyn Error> {
         &self.spent
     }
-    pub fn unconfirmed<'a>(&self) -> &Vec<(Coin<'a>), Error> {
+    pub fn unconfirmed<'a>(&self) -> &Vec<(Coin<'a>), dyn Error> {
         &self.unconfirmed
     }
 

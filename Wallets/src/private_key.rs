@@ -1,12 +1,18 @@
 use std::{fmt, fmt::Display, str::FromStr};
-use neo_core::no_std::*;
-use neo_core::neo_type::PRIVATE_KEY_BIN_LEN;
-use neo_core::utilities::*;
-use neo_crypto::{base58, hex};
-use crate::public_key::PublicKey;
-use crate::address::{AddressError, Address};
-use serde::{Serialize,Deserialize};
+
 use failure::Fail;
+use serde::{Deserialize, Serialize};
+
+use neo_core::neo_type::{PRIVATE_KEY_BIN_LEN, PRIVATE_KEY_HEX_LEN, WIF_KEY_HEX_LEN};
+use neo_core::no_std::*;
+use neo_core::utilities::*;
+use neo_crypto::{base58, hex, FromBase58, ToBase58};
+
+use crate::address::{Address, AddressError};
+use crate::public_key::PublicKey;
+use crate::wif::{WifKey, WifKeyError};
+use neo_core::crypto::checksum;
+
 /// Represents an  private key
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash, Serialize)]
 pub struct PrivateKey(pub [u8; PRIVATE_KEY_BIN_LEN]);
@@ -29,28 +35,58 @@ impl PrivateKey {
         Address::from_private_key(self)
     }
 
-    /// Returns a private key .
-    // pub fn from_secp256k1_secret_key(secret_key: &secp256k1::SecretKey) -> Self {
-    //     Self(secret_key.clone())
-    // }
-
-    /// Returns the secp256k1 secret key of the private key.
+    /// Returns the hex string of the private key.
     pub fn to_hex_string(&self) -> String {
         self.0.to_hex()
     }
+
+    // /// Convert to the wif key
+    // pub fn to_wif(&self) -> Result<WifKey, WifKeyError> {}
+    //
+    // // pub fn from_wif()->Result<Self, PrivateKeyError> {
+    // //
+    // // }
 }
 
 impl FromStr for PrivateKey {
     type Err = PrivateKeyError;
 
     fn from_str(private_key: &str) -> Result<Self, PrivateKeyError> {
+        match private_key.len() {
+            PRIVATE_KEY_HEX_LEN => {
+                let secret_key = hex::decode(private_key)?;
+                Ok(Self(secret_key.as_slice()))
+            }
+            WIF_KEY_HEX_LEN => {
+                let data = private_key.from_base58().unwrap();
+                let len = data.len();
 
-        if private_key.len() != 64 {
-            return Err(PrivateKeyError::InvalidCharacterLength(private_key.len()));
+                if (len != 37 && len != 38) ||
+                    data[0] != 0x80 ||
+                    data[33] != 0x01 {
+                    return Err(PrivateKeyError::InvalidByteLength(37));
+                };
+
+                let expected = &data[len - 4..len];
+                let checksum = &checksum(&data[0..len - 4])[0..4];
+                if *expected != *checksum {
+                    let expected = expected.to_base58();
+                    let found = checksum.to_base58();
+                    // println!("Error: {}==>{}", expected, found);
+                    return Err(PrivateKeyError::InvalidChecksum(expected,found));
+                }
+
+                let mut pk = [0u8; PRIVATE_KEY_BIN_LEN];
+                pk.copy_from_slice(&data[1..33]);
+
+                Ok(PrivateKey(pk))
+            }
+
+            _ => Err(PrivateKeyError::InvalidCharacterLength(private_key.len()))
         }
-
-        let secret_key = hex::decode(private_key)?;
-        Ok(Self(secret_key.as_slice()))
+        // if private_key.len() != PRIVATE_KEY_HEX_LEN  && private_key.len() != WIF_KEY_HEX_LEN{
+        //     return Err(PrivateKeyError::InvalidCharacterLength(private_key.len()));
+        // }
     }
 }
 
@@ -65,7 +101,6 @@ impl Display for PrivateKey {
 
 #[derive(Debug, Fail)]
 pub enum PrivateKeyError {
-
     #[fail(display = "{}: {}", _0, _1)]
     Crate(&'static str, String),
 
@@ -114,7 +149,6 @@ impl From<hex::FromHexError> for PrivateKeyError {
         PrivateKeyError::Crate("hex", format!("{:?}", error))
     }
 }
-
 
 
 #[cfg(test)]
