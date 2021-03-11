@@ -69,8 +69,15 @@ impl Fixed8 {
     /**
      * Returns true if the value is equivalent.
      */
-    pub fn equals(&self, other: &Fixed8) -> bool {
+    pub fn equals_fixed8(&self, other: &Fixed8) -> bool {
         self.0 == other.0
+    }
+
+    /**
+    * Returns true if the value is equivalent.
+    */
+    pub fn equals(&self, other: i64) -> bool {
+        self.0 == other
     }
 
     /**

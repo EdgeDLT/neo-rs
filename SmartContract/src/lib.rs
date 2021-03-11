@@ -1,9 +1,10 @@
-mod contract_parameter;
-mod find_options;
-mod trigger_type;
-mod call_flags;
-mod op_code;
-mod stack_item;
+pub mod contract_parameter;
+pub mod find_options;
+pub mod trigger_type;
+pub mod call_flags;
+pub mod op_code;
+pub mod stack_item;
+pub mod script_builder;
 
 #[cfg(test)]
 mod tests {

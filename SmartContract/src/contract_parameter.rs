@@ -22,7 +22,7 @@ pub enum ContractParamType {
 }
 
 
-pub fn toContractParamType(
+pub fn to_contract_param_type(
     param_type: usize
 ) -> Result<ContractParamType, Error>
 {
@@ -41,11 +41,23 @@ pub struct ContractParam<T>
 }
 
 
+/// Get methods
+impl<T> ContractParam<T> where T: Clone {
+
+    pub fn param_type(&self) -> &ContractParamType {
+        &self.param_type
+    }
+    pub fn value(&self) -> &Option<T> {
+        &self.value
+    }
+}
+
+
 /**
  * Contract input parameters.
  * These are mainly used as parameters to pass in for RPC test invokes.
  */
-impl ContractParam<T> {
+impl<T> ContractParam<T> {
     /**
      * Creates a String ContractParam.
      */
@@ -157,10 +169,10 @@ impl ContractParam<T> {
     //   value?: any
     // ) {
     //   if (typeof type === "object") {
-    //     self.type = toContractParamType(type.type);
+    //     self.type = to_contract_param_type(type.type);
     //     self.value = type.value;
     //   } else if (type !== undefined) {
-    //     self.type = toContractParamType(type);
+    //     self.type = to_contract_param_type(type);
     //     self.value = value;
     //   } else {
     //     throw new Error("No constructor arguments provided!");

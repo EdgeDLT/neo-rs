@@ -11,6 +11,7 @@ pub mod private_key;
 pub mod public_key;
 pub mod address;
 pub mod wif;
+pub mod multisig;
 
 
 #[cfg(test)]

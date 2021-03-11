@@ -85,10 +85,11 @@ impl Witness {
         sigs: &[Witness],
         acct_or_verification_script: &str,
     ) -> Witness {
+
         let verification_script = acct_or_verification_script;
 
 
-        let public_keys = getPublicKeysFromVerificationScript(verification_script);
+        let public_keys =  getPublicKeysFromVerificationScript(verification_script);
 
         let orderedSigs = public_keys.len().fill("");
 

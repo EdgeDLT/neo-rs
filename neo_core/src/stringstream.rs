@@ -2,7 +2,7 @@ use crate::misc::reverse_hex;
 
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub struct StringStream {
-    pub s: &'static str,
+    pub s: String,
     pub pter: usize,
 }
 
@@ -16,7 +16,7 @@ impl StringStream {
      */
     pub fn new(str: &'static str) -> StringStream {
         Self {
-            s: str.clone(),
+            s: str.to_string(),
             pter: 0,
         }
     }
@@ -62,7 +62,7 @@ impl StringStream {
      */
     pub fn read(&mut self, bytes: usize) -> String {
         if self.is_empty() {
-            ()
+            panic!("");
         };
 
         let to = (self.pter + bytes * 2) as usize;
@@ -70,7 +70,7 @@ impl StringStream {
 
         self.pter = self.pter + bytes * 2;
 
-        String::from(out)
+        out.to_string()
     }
 
     /**
