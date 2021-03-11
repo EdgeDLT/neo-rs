@@ -12,6 +12,7 @@ pub mod public_key;
 pub mod address;
 pub mod wif;
 pub mod multisig;
+pub mod account;
 
 
 #[cfg(test)]
