@@ -9,4 +9,4 @@ edition = "2018"
 [dependencies]
 fortanix-sgx-tools = "0.4.3"
 sgx-isa = { version = "0.3", features = ["sgxstd"] }
-rand = "0.6.4"
+rand = "0.8.3"
