@@ -104,10 +104,10 @@ pub fn num2fixed8(num: i64) -> Fixed8 {
  */
 pub fn num2var_int(num: i64) -> String {
     match num {
-        d if d < 0xfd => num2hexstring(num, 2),
-        d if d <= 0xffff => format!("fd{}", num2hexstring(num, 2)),
-        d if d <= 0xffffffff => format!("fe{}", num2hexstring(num, 2)),
-        _ => format!("ff{}", num2hexstring(num, 2)),
+        d if d < 0xfd => num2hexstring(num, 1*2),
+        d if d <= 0xffff => format!("fd{}", num2hexstring(num, 2*2)),
+        d if d <= 0xffffffff => format!("fe{}", num2hexstring(num, 4*2)),
+        _ => format!("ff{}", num2hexstring(num, 8*2)),
     }
 }
 
