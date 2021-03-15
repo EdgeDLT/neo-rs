@@ -3,9 +3,9 @@ use std::num::ParseIntError;
 use std::str;
 
 use neo_crypto::hex;
+use neo_crypto::hex::ToHex;
 
 use crate::fixed8::Fixed8;
-use neo_crypto::hex::ToHex;
 
 /**
  * @param buf ArrayBuffer
@@ -82,8 +82,8 @@ pub fn hex2int(hex: &str) -> Result<i64, ParseIntError> {
  * @param size The required size in bytes, eg 1 for Uint8, 2 for Uint16. Defaults to 1.
  * @param littleEndian Encode the hex in little endian form
  */
-pub fn num2hexstring(num: i64) -> String {
-    format!("{:02X}", num)
+pub fn num2hexstring(num: i64, size: usize) -> String {
+    format!("{:01$x}", num, size)
 }
 
 /**
@@ -104,16 +104,16 @@ pub fn num2fixed8(num: i64) -> Fixed8 {
  */
 pub fn num2var_int(num: i64) -> String {
     match num {
-        d if d < 0xfd => num2hexstring(num),
-        d if d <= 0xffff => format!("fd{}", num2hexstring(num)),
-        d if d <= 0xffffffff => format!("fe{}", num2hexstring(num)),
-        _ => format!("ff{}", num2hexstring(num)),
+        d if d < 0xfd => num2hexstring(num, 2),
+        d if d <= 0xffff => format!("fd{}", num2hexstring(num, 2)),
+        d if d <= 0xffffffff => format!("fe{}", num2hexstring(num, 2)),
+        _ => format!("ff{}", num2hexstring(num, 2)),
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::convert::{ab2str, hex2int, int2hex, str2ab};
+    use crate::convert::{ab2str, hex2int, int2hex, num2hexstring, str2ab};
 
     #[test]
     pub fn test_ab2str() {
@@ -127,6 +127,26 @@ mod tests {
         let s = "hello world";
         let v = str2ab(s);
         assert_eq!(v, [0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64]);
+    }
+
+    #[test]
+    pub fn test_num2hexstring() {
+        let i = 92233720;
+
+        let h = num2hexstring(i, 2);
+        assert_ne!(h, "F8".to_lowercase());
+
+        let h = num2hexstring(i, 4);
+        assert_ne!(h, "5FF8".to_lowercase());
+
+        let h = num2hexstring(i, 8);
+        assert_eq!(h, "057F5FF8".to_lowercase());
+
+        let h = num2hexstring(i, 10);
+        assert_eq!(h, "00057F5FF8".to_lowercase());
+
+        let h = num2hexstring(i, 12);
+        assert_eq!(h, "0000057F5FF8".to_lowercase())
     }
 
     #[test]

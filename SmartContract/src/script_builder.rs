@@ -7,23 +7,24 @@ use neo_core::stringstream::StringStream;
 
 use crate::contract_parameter::{ContractParam, ContractParamType};
 use crate::op_code::OpCode;
+use std::alloc::Global;
 
-pub enum ArgsType {
-    Boolean,
-    Integer,
-    Byte,
-    ByteArray,
-    String,
-    Array,
-    Param,
+pub enum Args {
+    Boolean(bool),
+    Integer(i64),
+    Byte(u8),
+    ByteArray(&'static [u8]),
+    String(String),
+    Array(Vector<Args>),
+    Param(ContractParam),
     None,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub struct ScriptIntent<T> {
+pub struct ScriptIntent {
     pub scriptHash: String,
     pub operation: Option<String>,
-    pub args: Option<&'static T>,
+    pub args: Option<Args>,
     pub useTailCall: Option<bool>,
 }
 
@@ -35,11 +36,11 @@ pub struct ScriptIntent<T> {
  * @param sb
  * @returns A single ScriptIntent if available.
  */
-pub fn retrieveAppCall(sb: &mut ScriptBuilder) -> Result<ScriptIntent<[u8]>, ScriptBuilderError> {
+pub fn retrieveAppCall(sb: &mut ScriptBuilder) -> Result<ScriptIntent, ScriptBuilderError> {
     let mut output = ScriptIntent {
         scriptHash: "".to_string(),
         operation: None,
-        args: Some([0u8].as_bytes()),
+        args: Some(Args::ByteArray([0u8].as_bytes())),
         useTailCall: None,
     };
 
@@ -112,12 +113,11 @@ impl ScriptBuilder {
         &mut self,
         scriptHash: &str,
         operation: Option<&str>,
-        args: Option<T>,
-        format: Option<ArgsType>,
+        args: Option<Args>,
         useTailCall: bool,
     ) -> &self {
         match a.downcast_ref::<u32>() {
-            Some(v) => self.emit_push(args, ArgsType::Integer),
+            Some(v) => self.emit_push(args, Args::Integer),
             None => panic!(""),
         }
 
@@ -162,18 +162,18 @@ impl ScriptBuilder {
      * @param data
      * @return self
      */
-    pub fn emit_push(&mut self, data: Option<T>, format: ArgsType) -> &self {
-        match format? {
-            ArgsType::Integer => self._emit_num(data?),
-            ArgsType::Boolean =>
-                self.emit(match data? {
+    pub fn emit_push(&mut self, data: Args) -> &self {
+        match data {
+            Args::Integer(v) => self._emit_num(v),
+            Args::Boolean(v) =>
+                self.emit(match v {
                     true => OpCode.PUSHT,
                     false => OpCode.PUSHF
                 }, None),
 
-            ArgsType::ByteArray => self._emit_array(data?),
-            ArgsType::String => self._emit_string(data.as_str()),
-            ArgsType::Param => self._emit_param(ContractParam(data?)),
+            Args::ByteArray(v) => self._emit_array(v),
+            Args::String(v) => self._emit_string(v.as_str()),
+            Args::Param(v) => self._emit_param(&v),
             _ => self.emit(OpCode.PUSHF, None),
         }
 
@@ -186,14 +186,14 @@ impl ScriptBuilder {
      * A script may have multiple invocations so a list is always returned.
      * @return A list of ScriptIntents[].
      */
-    pub fn to_script_params(&mut self) -> Box<[ScriptIntent<T>]> {
+    pub fn to_script_params(&mut self) -> Vec<ScriptIntent> {
         self.reset();
-        let scripts = [];
+        let mut scripts = Vec::new();
         while !self.0.s.is_empty() {
             let a = retrieveAppCall(&mut self).unwrap();
             scripts.push(a);
         }
-        scripts;
+        scripts
     }
 
     /**
@@ -225,9 +225,9 @@ impl ScriptBuilder {
     {
         arr.reverse();
 
-        self.emit_push(Some(i), ArgsType::ByteArray);
+        self.emit_push(Args::ByteArray(i));
 
-        self.emit_push(Some(arr.len()), ArgsType::Integer).emit(OpCode::PACK);
+        self.emit_push(Args::Integer(arr.len() as i64)).emit(OpCode::PACK);
 
         &self
     }
@@ -243,24 +243,26 @@ impl ScriptBuilder {
         ensureHex(hexstring);
         let size = hexstring.len() / 2;
 
-        if size <= OpCode::PUSHBYTES75 as usize {
-            self.str += num2hexstring(size as i64);
-            self.str += hexstring;
-        } else if size < 0x100 {
-            self.emit(OpCode::PUSHDATA1, None);
-            self.str += num2hexstring(size as i64);
-            self.str += hexstring;
-        } else if size < 0x10000 {
+
+        match size {
+            a if a <= OpCode::PUSHBYTES75 as usize =>{
+                self.str += num2hexstring(size as i64);
+                self.str += hexstring;
+            },
+            b if b < 0x10000  =>{
             self.emit(OpCode::PUSHDATA2, None);
             self.str += num2hexstring(size as i64, 2, true);
             self.str += hexstring;
-        } else if size < 0x100000000 {
+        } ,
+            c if c   < 0x100000000 => {
             self.emit(OpCode::PUSHDATA4, None);
             self.str += num2hexstring(size as i64, 4, true);
             self.str += hexstring;
-        } else {
-            panic!("String too big to emit!");
         }
+            _ => panic!("String too big to emit!");
+
+        }
+
         &self
     }
 
@@ -299,7 +301,7 @@ impl ScriptBuilder {
      * Private method to append a ContractParam
      * @private
      */
-    fn _emit_param(&mut self, param: &ContractParam<T>) -> &self {
+    fn _emit_param(&mut self, param: &ContractParam) -> &self {
         if !param.param_type() {
             panic!("No type available!");
         }

@@ -1,3 +1,5 @@
+#![feature(arbitrary_enum_discriminant)]
+
 pub mod contract_parameter;
 pub mod find_options;
 pub mod trigger_type;

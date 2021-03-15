@@ -162,8 +162,8 @@ mod tests {
     #[test]
     pub fn test_equals() {
         let val_1 = Fixed8::from_hex("7fffffffffffffff").unwrap();
-        let val_2 = Fixed8(9223372036854775807);
-        assert_eq!(val_1.equals(&val_2), true);
+        let val_2 = 9223372036854775807 as i64;
+        assert_eq!(val_1.equals(val_2), true);
     }
 
     #[test]

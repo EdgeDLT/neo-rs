@@ -3,7 +3,7 @@
 // import logger from "../logging";
 // import { hash160, reverseHex } from "../u";
 // import * as core from "./core";
-// import { constructMultiSigVerificationScript } from "./multisig";
+// import { construct_multi_sig_verification_script } from "./multisig";
 // import { decrypt, encrypt, ScryptParams } from "./nep2";
 // import {
 //   isAddress,
@@ -24,6 +24,7 @@ use neo_core::crypto::hash160;
 
 use crate::address::Address;
 use crate::private_key::PrivateKey;
+use crate::multisig::construct_multi_sig_verification_script;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Contract {
@@ -73,16 +74,11 @@ impl Account {
     pub fn createMultiSig(
         signingThreshold: usize,
         publicKeys: &[str]) -> Account {
-        let verificationScript = constructMultiSigVerificationScript(
+        let verificationScript = construct_multi_sig_verification_script(
             signingThreshold,
             publicKeys,
         );
         Account {
-            address: Address(),
-            label: "",
-            is_default: false,
-            lock: false,
-            key: PrivateKey(),
             contract: Contract{
                 script: verificationScript,
                 parameters:  Array(signingThreshold).map((_, i) => ({
@@ -91,7 +87,6 @@ impl Account {
                 })),
                 deployed: false,
             },
-            extra: None
         }
     }
 

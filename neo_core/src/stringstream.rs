@@ -129,7 +129,8 @@ impl StringStream {
         let after = self.peek(5);
         self.pter = self.pter - 2;
 
-        println!("$before => {} | $current => {:?}| $after => {:?}", before, current, after);
+        panic!("")
+        // println!("$before => {} | $current => {:?}| $after => {:?}", before, current, after);
     }
 }
 
