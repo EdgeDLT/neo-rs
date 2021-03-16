@@ -8,7 +8,7 @@ A neo wallet project written in Rust Language.
 - Public key
 - Address
 - Wif Key
-- nep2
+- Nep2
 
 ### TODO
 - Nep6

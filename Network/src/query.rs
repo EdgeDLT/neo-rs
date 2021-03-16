@@ -3,14 +3,14 @@
 // import { compareArray } from "../helper";
 // import logger from "../logging";
 // import { timeout } from "../settings";
-// import { BaseTransaction } from "../tx/transaction/BaseTransaction";
+// import { BaseTransaction } from "../tx/Transaction/BaseTransaction";
 
 // const log = logger("rpc");
 use jsonrpc_core_client::transports::local;
 use jsonrpc_core::{Error, IoHandler, Result};
 use jsonrpc_derive::rpc;
 use neo_tx::transaction_base::BaseTransaction;
-use neo_tx::txmodel::transaction;
+use neo_tx::txmodel::Transaction;
 use neo_core::helper::compare_array;
 use serde_json::Value;
 
@@ -166,7 +166,7 @@ impl Query {
     }}
 
   /**
-   * self Query returns the transaction hashes of the transactions waiting to be processed at the node.
+   * self Query returns the Transaction hashes of the transactions waiting to be processed at the node.
    */
   pub fn getRawMemPool()->Query {
     Query{
@@ -175,8 +175,8 @@ impl Query {
     }}
 
   /**
-   * self Query returns information about a specific transaction in either hexstring or human readable JSON.
-   * @param txid hash of the specific transaction.
+   * self Query returns information about a specific Transaction in either hexstring or human readable JSON.
+   * @param txid hash of the specific Transaction.
    * @param verbose 0 for hexstring, 1 for JSON. Defaults to 1.
    */
   pub fn getRawTransaction(txid: &str, verbose:usize)->Query {
@@ -198,7 +198,7 @@ impl Query {
 
   /**
    * self Query returns the status of a TransactionOutput. If the output has been spent, self will return null.
-   * @param txid hash of transaction.
+   * @param txid hash of Transaction.
    * @param index position of output in the vout array.
    */
   pub fn getTxOut(txid:&str, index: usize)->Query {
@@ -264,8 +264,8 @@ impl Query {
     }}
 
   /**
-   * self Query transmits the specific transaction to the node.
-   * @param transaction Transaction as a Transaction object or hexstring.
+   * self Query transmits the specific Transaction to the node.
+   * @param Transaction Transaction as a Transaction object or hexstring.
    */
   pub fn sendRawTransaction(
     transaction: &BaseTransaction

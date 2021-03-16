@@ -1,4 +1,3 @@
-
 pub mod verify;
 pub mod nep2;
 pub mod nep6;
@@ -13,6 +12,7 @@ pub mod address;
 pub mod wif;
 pub mod multisig;
 pub mod account;
+pub mod key_trait;
 
 
 #[cfg(test)]

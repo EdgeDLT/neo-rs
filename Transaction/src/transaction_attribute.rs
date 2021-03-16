@@ -1,7 +1,7 @@
 use crate::usage::{TxAttrUsage, toTxAttrUsage};
 use neo_core::stringstream::StringStream;
 use std::error::Error;
-use crate::txmodel::{ transaction_param};
+use crate::txmodel::{TransactionParam};
 use neo_core::convert::{num2hexstring, num2var_int, hex2int};
 
 const maxTransactionAttributeSize: u32 = 65535;
@@ -13,18 +13,18 @@ pub struct TransactionAttribute {
 }
 
 /**
- * An attribute that is used to decorate the transaction.
- * Used for appending additional information to the transaction.
+ * An attribute that is used to decorate the Transaction.
+ * Used for appending additional information to the Transaction.
  *
  * For example, a remark is attached as an attribute.
  */
-impl transaction_param for TransactionAttribute {
+impl TransactionParam for TransactionAttribute {
     fn deserialize(&self, hex: &str) -> Result<TransactionAttribute, Error> {
         let ss = StringStream.new(hex);
-        self.fromStream(ss)
+        self.from_stream(ss)
     }
 
-    fn fromStream(&self, ss: &mut StringStream) -> Result<TransactionAttribute, Error> {
+    fn from_stream(&self, ss: &mut StringStream) -> Result<TransactionAttribute, Error> {
         let usage = hex2int(ss.read(1)?.as_str())?;
         let mut data = "";
         match usage {

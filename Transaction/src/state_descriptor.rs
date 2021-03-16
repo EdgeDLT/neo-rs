@@ -2,7 +2,7 @@ use neo_wallet;
 use num_enum::TryFromPrimitive;
 use std::convert::TryFrom;
 use std::error::Error;
-use crate::txmodel::{Transaction, Transaction_Trait, transaction_param};
+use crate::txmodel::{Transaction, Transaction_Trait, TransactionParam};
 use neo_core::convert::{num2var_int, hex2int};
 use neo_core::stringstream::StringStream;
 
@@ -31,13 +31,13 @@ pub struct StateDescriptor
 }
 
 
-impl transaction_param for StateDescriptor {
+impl TransactionParam for StateDescriptor {
     fn deserialize(&self, hex: &str) -> Result<StateDescriptor, Error> {
         let ss = StringStream.new(hex);
-        self.fromStream(ss)
+        self.from_stream(ss)
     }
 
-    fn fromStream(&self, ss: &mut StringStream) -> Result<StateDescriptor, Error> {
+    fn from_stream(&self, ss: &mut StringStream) -> Result<StateDescriptor, Error> {
         let state_type = hex2int(ss.read(1)?.as_str())?;
 
         let key = ss.read_var_bytes()?.as_str();

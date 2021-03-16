@@ -34,7 +34,7 @@ struct NeoWallet {
 
 impl NeoWallet {
     pub fn new() -> NeoWallet {
-        // let mut key = nep2::new();
+        // let mut key = Nep2::new();
         // let private_key = NeoPrivateKey::new(rng)?;
         // let public_key = private_key.to_public_key();
         // let address = public_key.to_address(&NeoFormat::Standard)?;
@@ -120,7 +120,7 @@ impl Display for NeoWallet {
     }
 }
 
-/// Represents parameters for an Neo transaction input
+/// Represents parameters for an Neo Transaction input
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct NeoInput {
     pub to: String,
@@ -249,15 +249,15 @@ impl CLI for NeoCLI {
                 options.parse(arguments, &["json"]);
                 options.parse(arguments, &["address", "private", "public"]);
             }
-            ("transaction", Some(arguments)) => {
-                options.subcommand = Some("transaction".into());
+            ("Transaction", Some(arguments)) => {
+                options.subcommand = Some("Transaction".into());
                 options.parse(arguments, &["createrawtransaction", "network", "signrawtransaction"]);
             }
             ("neo", Some(arguments)) => {
                 let kp = KeyPair::KeyPair::new();
                 println!("{}",kp);
                 // println!("-----------");
-                // options.subcommand = Some("transaction".into());
+                // options.subcommand = Some("Transaction".into());
                 // options.parse(arguments, &["createrawtransaction", "network", "signrawtransaction"]);
             }
             _ => {}

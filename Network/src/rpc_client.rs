@@ -2,7 +2,7 @@ import { AxiosRequestConfig } from "axios";
 import { DEFAULT_RPC, NEO_NETWORK, RPC_VERSION } from "../consts";
 import logger from "../logging";
 import { timeout } from "../settings";
-import { BaseTransaction } from "../tx/transaction/BaseTransaction";
+import { BaseTransaction } from "../tx/Transaction/BaseTransaction";
 import { isAddress, Claims, Balance, Coin } from "../wallet";
 import { RPCVMResponse } from "./parse";
 import Query from "./Query";
@@ -199,7 +199,7 @@ export class RPCClient {
   }
 
   /**
-   * Gets a list of all transaction hashes waiting to be processed.
+   * Gets a list of all Transaction hashes waiting to be processed.
    */
   public async getRawMemPool(): Promise<string[]> {
     const response = await this.execute(Query.getRawMemPool());
@@ -207,7 +207,7 @@ export class RPCClient {
   }
 
   /**
-   * Gets a transaction based on its hash.
+   * Gets a Transaction based on its hash.
    */
   public async getRawTransaction(txid: string, verbose = 1): Promise<any> {
     const response = await this.execute(Query.getRawTransaction(txid, verbose));
@@ -223,7 +223,7 @@ export class RPCClient {
   }
 
   /**
-   * Gets the transaction output given a transaction id and index
+   * Gets the Transaction output given a Transaction id and index
    */
   public async getTxOut(txid: string, index: number): Promise<any> {
     const response = await this.execute(Query.getTxOut(txid, index));
@@ -297,7 +297,7 @@ export class RPCClient {
   }
 
   /**
-   * Sends a serialized transaction to the network.
+   * Sends a serialized Transaction to the network.
    */
   public async sendRawTransaction(
     transaction: BaseTransaction | string

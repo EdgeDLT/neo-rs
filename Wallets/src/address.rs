@@ -15,6 +15,8 @@ use neo_crypto::sha2::Digest;
 
 use crate::private_key::{PrivateKey, PrivateKeyError};
 use crate::public_key::{PublicKey, PublicKeyError};
+use crate::key_trait::KeyTrait;
+use std::error::Error;
 
 /// Represents an  address
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash, Serialize, Deserialize)]
@@ -70,6 +72,29 @@ impl Address {
         pubk.clone_from_slice(pub_key.as_slice());
 
         Address(addr.to_base58())
+    }
+}
+
+
+impl KeyTrait for Address{
+    fn deserialize(&self, hex: &str) -> Result<_, dyn Error> {
+        unimplemented!()
+    }
+
+    fn serialize(&self) -> Result<String, dyn Error> {
+        unimplemented!()
+    }
+
+    fn to_hex(&self) -> String {
+        unimplemented!()
+    }
+
+    fn to_slice(&self) -> &[u8] {
+        unimplemented!()
+    }
+
+    fn equals(&self, other: &_) -> bool {
+        unimplemented!()
     }
 }
 

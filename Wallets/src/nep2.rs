@@ -7,19 +7,19 @@ use neo_crypto::aes::Aes;
 use std::convert::{TryFrom, TryInto};
 use neo_crypto::{ToBase58, FromBase58, hex};
 
-pub struct nep2 {}
+pub struct Nep2 {}
 
-impl nep2 {
+impl Nep2 {
 
-    pub fn get_nep2_from_KeyPair() {}
+    pub fn get_nep2_from_key_pair() {}
 
     pub fn get_nep2_from_private_key(pri_key: &PrivateKeyHex, passphrase: &str) -> Result<&str, Error> {
 
         let private_key: &PrivateKeyBin = pri_key.as_bytes() as &PrivateKeyBin;
 
-        let KeyPair = KeyPair::get_key_pair_from_private_key(private_key);
+        let key_pair = KeyPair::get_key_pair_from_private_key(private_key);
 
-        let mut addresshash: [u8; 4] = KeyPair.get_addr_hash_from_address();
+        let mut addresshash: [u8; 4] = key_pair.get_addr_hash_from_address();
 
         let mut result = vec![0u8; SCRYPT_DK_LEN];
         let params = Params::new(SCRYPT_LOG_N, SCRYPT_R, SCRYPT_P).unwrap();
@@ -58,7 +58,7 @@ impl nep2 {
 
     pub fn get_private_key_from_nep2(nep2: & str, passphrase: &str) -> Result<&str, Error> {
         if nep2.len() != 58 {
-            println!("Wrong nep2");
+            println!("Wrong Nep2");
             ()
         }
         let decoded_key: [u8; 39] = nep2.from_base58().unwrap().try_into().unwrap();
@@ -116,6 +116,7 @@ impl nep2 {
         if kp_addresshash != address_hash {
             println!("Wrong Passphrase");
         }
+
         Ok(hex::encode(pri_key).as_str())
     }
 }

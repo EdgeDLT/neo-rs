@@ -3,7 +3,7 @@ use std::{fmt, fmt::Display, str::FromStr};
 use failure::Fail;
 use serde::{Deserialize, Serialize};
 
-use neo_core::neo_type::{PRIVATE_KEY_BIN_LEN, PRIVATE_KEY_HEX_LEN, WIF_KEY_HEX_LEN};
+use neo_core::neo_type::{PRIVATE_KEY_BIN_LEN, PRIVATE_KEY_HEX_LEN, WIF_KEY_HEX_LEN, PrivateKeyBin};
 use neo_core::no_std::*;
 use neo_core::utilities::*;
 use neo_crypto::{base58, hex, FromBase58, ToBase58};
@@ -12,6 +12,8 @@ use crate::address::{Address, AddressError};
 use crate::public_key::PublicKey;
 use crate::wif::{WifKey, WifKeyError};
 use neo_core::crypto::checksum;
+use crate::key_trait::KeyTrait;
+use std::error::Error;
 
 /// Represents an  private key
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash, Serialize)]
@@ -40,12 +42,38 @@ impl PrivateKey {
         self.0.to_hex()
     }
 
+    pub fn to_slice(&self) -> PrivateKeyBin {}
     // /// Convert to the wif key
     // pub fn to_wif(&self) -> Result<WifKey, WifKeyError> {}
     //
     // // pub fn from_wif()->Result<Self, PrivateKeyError> {
     // //
     // // }
+}
+
+impl KeyTrait for PrivateKey {
+    fn deserialize(&self, hex: &str) -> Result<_, dyn Error> {
+        unimplemented!()
+    }
+
+    fn serialize(&self) -> Result<String, dyn Error> {
+        unimplemented!()
+    }
+
+    fn to_hex(&self) -> String {
+        unimplemented!()
+    }
+
+    fn to_slice(&self) -> &[u8] {
+        let mut key = [0u8; PRIVATE_KEY_BIN_LEN];
+        key.copy_from_slice(&self.0);
+        key
+
+    }
+
+    fn equals(&self, other: &PrivateKey) -> bool {
+        unimplemented!()
+    }
 }
 
 impl FromStr for PrivateKey {
@@ -73,7 +101,7 @@ impl FromStr for PrivateKey {
                     let expected = expected.to_base58();
                     let found = checksum.to_base58();
                     // println!("Error: {}==>{}", expected, found);
-                    return Err(PrivateKeyError::InvalidChecksum(expected,found));
+                    return Err(PrivateKeyError::InvalidChecksum(expected, found));
                 }
 
                 let mut pk = [0u8; PRIVATE_KEY_BIN_LEN];

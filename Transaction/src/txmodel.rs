@@ -1,53 +1,55 @@
-use neo_core::stringstream::StringStream;
 use std::io::Error;
+
 use neo_core::fixed8::Fixed8;
 use neo_core::misc::reverse_hex;
+use neo_core::stringstream::StringStream;
 use neo_crypto::sha2;
+
 use crate::transaction_output::TransactionOutput;
 use crate::witness::Witness;
 
-pub trait transaction_param {
-    fn deserialize(&self, hex: &str) -> Result<Transaction, Error>;
+pub trait TransactionParam {
+    fn deserialize(&self, hex: &str) -> Result<dyn Transaction, Error>;
 
-    fn fromStream(&self, ss: &mut StringStream) -> Result<Transaction, Error>;
+    fn from_stream(&self, ss: &mut StringStream) -> Result<dyn Transaction, Error>;
 
     fn serialize(&self) -> Result<String, Error>;
 
-    fn equals(&self, other: &Transaction) -> bool;
+    fn equals(&self, other: &dyn Transaction) -> bool;
 
-    fn export(&self) -> Result<Transaction, Error>
+    fn export(&self) -> Result<dyn Transaction, Error>
         where
             Self: Sized;
 }
 
-pub trait transaction {
+pub trait Transaction {
     fn symbol() -> &str {
         "Transaction"
     }
 
-    fn hash(&self) -> Result<&str, Error>;
+    fn hash(&self) -> String;
 
-    fn fees(&self) -> Fixed8 {fixed(0) }
+    fn fees(&self) -> Fixed8 { fixed(0) }
 
     // HashMap<String, Ident>
     // fn exclusiveData(&self): { [key: string]: any };
 
-    fn serializeExclusive(&self) -> Result<&str, Error>{Ok("")}
+    fn serialize_exclusive(&self) -> Result<&str, Error> { Ok("") }
 
-    fn addOutput(&mut self, txOut: &TransactionOutput) -> &self;
+    fn add_output(mut self, tx_out: &TransactionOutput) -> Self;
 
-    fn addIntent(
-        &mut self,
+    fn add_intent(
+        mut self,
         symbol: &str,
         value: Fixed8,
         address: &str,
-    ) -> &self;
+    ) -> Self;
 
-    fn addAttribute(&mut self, usage: usize, data: &str) -> &self;
+    fn add_attribute(mut self, usage: usize, data: &str) -> Self;
 
-    fn addRemark(&mut self, remark: &str) -> &self;
+    fn add_remark(mut self, remark: &str) -> Self;
 
-    fn addWitness(&mut self, witness: &Witness) -> &self;
+    fn add_witness(mut self, witness: &Witness) -> Self;
 
     /**
      * Calculate the inputs required based on existing outputs provided. Also takes into account the fees required through the gas property.
@@ -63,18 +65,18 @@ pub trait transaction {
     // )-> &self;
 
     /**
-     * Serialize the transaction and return it as a hexstring.
+     * Serialize the Transaction and return it as a hexstring.
      * @param {boolean} signed  - Whether to serialize the signatures. Signing requires it to be serialized without the signatures.
      * @return {string} Hexstring.
      */
     fn serialize(&self, signed: bool) -> Result<&str, Error>;
 
     /**
-     * Signs a transaction.
+     * Signs a Transaction.
      * @param {Account|string} signer - Account, privateKey or WIF
      * @return {Transaction} self
      */
     fn sign(&self, signer: &str) -> &self;
 
-    fn export(&self) -> transaction;
+    fn export(&self) -> dyn Transaction;
 }

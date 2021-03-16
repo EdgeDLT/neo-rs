@@ -7,7 +7,7 @@ use neo_crypto::sha2;
 use crate::transaction_attribute::TransactionAttribute;
 use crate::transaction_input::TransactionInput;
 use crate::transaction_output::TransactionOutput;
-use crate::txmodel::transaction;
+use crate::txmodel::Transaction;
 use crate::txtype::{toTxType, TransactionType};
 use crate::usage::{toTxAttrUsage, TxAttrUsage};
 use crate::witness::Witness;
@@ -22,34 +22,34 @@ pub struct BaseTransaction {
     scripts: Vec<Witness>,
 }
 
-impl transaction for BaseTransaction {
+impl Transaction for BaseTransaction {
     fn hash(&self) -> String {
         reverse_hex(sha2::digest(self.serialize(false)))
     }
 
 
-    fn addOutput(&mut self, txOut: &TransactionOutput) -> &self {
+    fn add_output(&mut self, txOut: &TransactionOutput) -> &self {
         self.outputs.push(txOut.clone());
         self
     }
 
-    fn addIntent(&mut self, symbol: &str, value: Fixed8, address: &str) -> &self {
+    fn add_intent(&mut self, symbol: &str, value: Fixed8, address: &str) -> &self {
         self.outputs.push(TransactionOutput.fromIntent(symbol, value, address));
         self
     }
 
-    fn addAttribute(&mut self, usage: usize, data: &str) -> &self {
+    fn add_attribute(&mut self, usage: usize, data: &str) -> &self {
         self.attributes.push(TransactionAttribute { usage: toTxAttrUsage(usage)?, data });
         self
     }
 
-    fn addRemark(&mut self, remark: &str) -> &self {
+    fn add_remark(&mut self, remark: &str) -> &self {
         let hexRemark = str2hexstring(&remark);
         self.add_attribute(TxAttrUsage::Remark as usize, hexRemark);
         self
     }
 
-    fn addWitness(&mut self, witness: &Witness) -> &self {
+    fn add_witness(&mut self, witness: &Witness) -> &self {
         self.scripts.push(witness.clone());
 
         // self.scripts = self.scripts.sort(
@@ -178,7 +178,7 @@ impl BaseTransaction {
     }
 
     /**
-     * Serialize the transaction and return it as a hexstring.
+     * Serialize the Transaction and return it as a hexstring.
      * @param {boolean} signed  - Whether to serialize the signatures. Signing requires it to be serialized without the signatures.
      * @return {string} Hexstring.
      */
@@ -187,7 +187,7 @@ impl BaseTransaction {
         out.push_str(num2hexstring(&self.tx_type as i64).as_str());
 
         out.push_str(num2hexstring(&self.version as i64).as_str());
-        out.push_str(self.serializeExclusive().as_str());
+        out.push_str(self.serialize_exclusive().as_str());
         out.push_str(serializeArrayOf(&self.attributes).as_str());
         out.push_str(serializeArrayOf(&self.inputs).as_str());
         out.push_str(serializeArrayOf(&self.outputs).as_str());
@@ -199,7 +199,7 @@ impl BaseTransaction {
     }
 
     /**
-     * Signs a transaction.
+     * Signs a Transaction.
      * @param {Account|string} signer - Account, privateKey or WIF
      * @return {Transaction} self
      */
@@ -213,7 +213,7 @@ impl BaseTransaction {
         Transaction
         with
         Account: $ { signer.label }`);
-        self.addWitness(Witness.fromSignature(signature, signer.pubKey));
+        self.add_witness(Witness.fromSignature(signature, signer.pubKey));
         return self;
     }
 

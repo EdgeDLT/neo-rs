@@ -4,7 +4,7 @@ use std::error::Error;
 use neo_core::misc::reverse_hex;
 use crate::utils::get_asset_id_by_symbol;
 use neo_core::fixed8::Fixed8;
-use crate::txmodel::{Transaction, Transaction_Trait, transaction_param};
+use crate::txmodel::{Transaction, Transaction_Trait, TransactionParam};
 
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash, Serialize, Deserialize)]
@@ -32,17 +32,17 @@ impl TransactionOutput {
 }
 
 /**
- * UTXO that is letructed in self transaction.
+ * UTXO that is letructed in self Transaction.
  * self represents a spendable coin in the system.
  */
-impl transaction_param for TransactionOutput {
+impl TransactionParam for TransactionOutput {
 
     fn deserialize(&self, hex: &str) -> Result<TransactionOutput, Error> {
         let mut ss = StringStream.new(hex);
-        self.fromStream(ss)
+        self.from_stream(ss)
     }
 
-    fn fromStream(&self, ss: &mut StringStream) -> Result<TransactionOutput, Error> {
+    fn from_stream(&self, ss: &mut StringStream) -> Result<TransactionOutput, Error> {
         let asset_id = reverse_hex(ss.read(32)?.as_str())?;
         let value = Fixed8.fromReverseHex(ss.read(8));
         let script_hash = reverse_hex(ss.read(20)?.as_str())?;

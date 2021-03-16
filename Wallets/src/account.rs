@@ -4,7 +4,7 @@
 // import { hash160, reverseHex } from "../u";
 // import * as core from "./core";
 // import { construct_multi_sig_verification_script } from "./multisig";
-// import { decrypt, encrypt, ScryptParams } from "./nep2";
+// import { decrypt, encrypt, ScryptParams } from "./Nep2";
 // import {
 //   isAddress,
 //   isNEP2,
@@ -21,25 +21,42 @@
 use std::collections::HashMap;
 
 use neo_core::crypto::hash160;
+use neo_core::neo_type::PrivateKeyHex;
 
 use crate::address::Address;
-use crate::private_key::PrivateKey;
 use crate::multisig::construct_multi_sig_verification_script;
+use crate::nep2::Nep2;
+use crate::private_key::PrivateKey;
+use crate::public_key::PublicKey;
+use crate::wif::WIF;
+use crate::key_trait::KeyTrait;
+use std::error::Error;
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+struct Account {
+    pub(crate) _private_key: Option<PrivateKey>,
+    pub(crate) _encrypted: Option<String>,
+    pub(crate) _address: Option<Address>,
+    pub(crate) _public_key: Option<PublicKey>,
+    pub(crate) _script_hash: Option<String>,
+    pub(crate) _wif: Option<WIF>,
+}
+
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Contract {
-    script: String,
-    parameters: Vec<HashMap<String,String>>,
+    script: &'static str,
+    parameters: Vec<HashMap<&'static str, &'static str>>,
     deployed: bool,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
-pub struct Account {
-    address: Address,
+pub struct AccountJSON {
+    address: &'static str,
     label: &'static str,
     is_default: bool,
     lock: bool,
-    key: PrivateKey,
+    key: &'static str,
     contract: Contract,
     extra: Option<HashMap<String, String>>,
 }
@@ -60,102 +77,33 @@ pub struct Account {
 impl Account {
     /**
      * Create a multi-sig account from a list of public keys
-     * @param signingThreshold Minimum number of signatures required for verification. Must be larger than 0 and less than number of keys provided.
-     * @param publicKeys List of public keys to form the account. 2-16 keys allowed. Order is important.
+     * @param signing_threshold Minimum number of signatures required for verification. Must be larger than 0 and less than number of keys provided.
+     * @param public_keys List of public keys to form the account. 2-16 keys allowed. Order is important.
      * @example
      * let threshold = 2;
-     * let publicKeys = [
+     * let public_keys = [
      * "02028a99826edc0c97d18e22b6932373d908d323aa7f92656a77ec26e8861699ef",
      * "031d8e1630ce640966967bc6d95223d21f44304133003140c3b52004dc981349c9",
      * "02232ce8d2e2063dce0451131851d47421bfc4fc1da4db116fca5302c0756462fa"
      * ];
-     * let acct = Account.createMultiSig(threshold, publicKeys);
+     * let acct = Account::create_multi_sig(threshold, public_keys);
      */
-    pub fn createMultiSig(
-        signingThreshold: usize,
-        publicKeys: &[str]) -> Account {
-        let verificationScript = construct_multi_sig_verification_script(
-            signingThreshold,
-            publicKeys,
+    pub fn create_multi_sig(&mut self,
+                            signing_threshold: usize,
+                            public_keys: &[str]) -> &self {
+        let verification_script = construct_multi_sig_verification_script(
+            signing_threshold,
+            public_keys,
         );
-        Account {
-            contract: Contract{
-                script: verificationScript,
-                parameters:  Array(signingThreshold).map((_, i) => ({
-                    name: `signature $ { i }`,
-                    type : "Signature",
-                })),
-                deployed: false,
-            },
-        }
+
+        self.contract = Contract {
+            script: verification_script.as_str(),
+            parameters: (0..signing_threshold).map(|i| ("signature" + i, "Signature")).collect(),
+            deployed: false,
+        };
+
+        &self
     }
-
-    // public extra: { [key: string]: any };
-    // public is_default: boolean;
-    // public lock: boolean;
-
-    // public contract: {
-    //   script: string;
-    //   parameters: { name: string; type: string }[];
-    //   deployed: boolean;
-    // };
-    // public label: string;
-
-    // tslint:disable:variable-name
-    // private _privateKey?: string;
-    // private _encrypted?: string;
-    // private _address?: string;
-    // private _publicKey?: string;
-    // private _scriptHash?: string;
-    // private _WIF?: string;
-    // tslint:enables:variable-name
-
-    // public constructor(str: string | Partial<AccountJSON> = "") {
-    // self.extra = {};
-    // self.label = "";
-    // self.is_default = false;
-    // self.lock = false;
-    // self.contract = Object.assign({}, DEFAULT_ACCOUNT_CONTRACT);
-    // if ( ! str) {
-    // self._privateKey = core.generatePrivateKey();
-    // } else if (typeof str == = "object") {
-    // self._encrypted = str.key;
-    // self._address = str.address;
-    // self.label = str.label | | "";
-    // self.extra = str.extra | | {};
-    // self.is_default = str.is_default | | false;
-    // self.lock = str.lock || false;
-    // self.contract =
-    // str.contract | | Object.assign({}, DEFAULT_ACCOUNT_CONTRACT);
-    // } else if (isPrivateKey(str)) {
-    // self._privateKey = str;
-    // } else if (isPublicKey(str, false)) {
-    // self._publicKey = core.getPublicKeyEncoded(str);
-    // } else if (isPublicKey(str, true)) {
-    // self._publicKey = str;
-    // } else if (isScriptHash(str)) {
-    // self._scriptHash = str;
-    // } else if (isAddress(str)) {
-    // self._address = str;
-    // } else if (isWIF(str)) {
-    // self._privateKey = core.getPrivateKeyFromWIF(str);
-    // self._WIF = str;
-    // } else if (isNEP2(str)) {
-    // self._encrypted = str;
-    // } else {
-    // throw new ReferenceError(`Invalid input: ${str}`);
-    // }
-    //
-    // self._update_contract_script();
-    // // Attempts to make address the default label of the Account.
-    // if ( ! self.label) {
-    // try {
-    // self.label = self.address;
-    // } catch (err) {
-    // self.label = "";
-    // }
-    // }
-    // }
 
     pub fn get_symbol() -> &'static str {
         "Account"
@@ -166,8 +114,8 @@ impl Account {
     // }
 
     pub fn is_multi_sig(&self) -> bool {
-        self.contract.script &&
-            self.contract.script.slice(self.contract.script.length - 2) == "ae"
+        let l = self.contract.script.len();
+        &self.contract.script[l - 2..l] == "ae"
     }
 
     /**
@@ -176,7 +124,7 @@ impl Account {
      */
     pub fn encrypted(&self) -> String {
         if self._encrypted {
-            return self._encrypted;
+            return self._encrypted?;
         } else {
             panic!("No encrypted key found");
         }
@@ -186,13 +134,8 @@ impl Account {
      * Case sensitive key of 52 characters long.
      * @example L1QqQJnpBwbsPGAuutuzPTac8piqvbR1HRjrY5qHup48TBCBFe4g
      */
-    pub fn get_wif(&self) -> String {
-        if self._WIF {
-            return self._WIF;
-        } else {
-            self._WIF = core.getWIFFromPrivateKey(self.privateKey);
-            return self._WIF;
-        }
+    pub fn get_wif(&self) -> Option<String> {
+        self._wif
     }
 
     /**
@@ -200,11 +143,11 @@ impl Account {
      * @example 7d128a6d096f0c14c3a25a2b0c41cf79661bfcb4a8cc95aaaea28bde4d732344
      */
     pub fn get_private_key(&self) -> String {
-        if self._privateKey {
-            return self._privateKey;
-        } else if self._WIF {
-            self._privateKey = core.getPrivateKeyFromWIF(self._WIF);
-            return self._privateKey;
+        if self._private_key {
+            return self._private_key?;
+        } else if self._wif {
+            self._private_key = core.getPrivateKeyFromWIF(self._wif);
+            return self._private_key?;
         } else if self._encrypted {
             panic!("Private Key encrypted!");
         } else {
@@ -217,157 +160,165 @@ impl Account {
      * @example 02028a99826edc0c97d18e22b6932373d908d323aa7f92656a77ec26e8861699ef
      */
     pub fn get_public_key(&self) -> String {
-        if self._publicKey {
-            return self._publicKey;
-        } else {
-            self._publicKey = core.getPublicKeyFromPrivateKey(self.privateKey);
-            return self._publicKey;
+        match self._public_key {
+            Some(p) => p,
+            None => {
+                self._public_key = core.getPublicKeyFromPrivateKey(self.key.to_slice());
+                self._public_key
+            }
         }
-    }
-
-    /** Retrieves the Public Key in encoded / unencoded form.
-     * @param encoded Encoded or unencoded.
-     */
-    pub fn get_PublicKey(&self, encoded: bool) -> String {
-        return encoded
-            ?;
-        self.publicKey
-            : core.getPublicKeyUnencoded(self.publicKey);
     }
 
     /**
      * Script hash of the key. self format is usually used in the code instead of address as self is a hexstring.
      */
     pub fn get_script_hash(&self) -> String {
-        if self._scriptHash {
-            return self._scriptHash;
+        return if self._scriptHash {
+            self._scriptHash
         } else {
             if self._address {
                 self._scriptHash = core.getScriptHashFromAddress(self.address);
-                return self._scriptHash;
+                self._scriptHash
             } else if self.contract.script {
                 self._scriptHash = self._get_script_hash_from_verification_script();
-                return self._scriptHash;
+                self._scriptHash
             } else {
                 self._scriptHash = core.getScriptHashFromPublicKey(self.publicKey);
-                return self._scriptHash;
+                self._scriptHash
             }
-        }
+        };
     }
 
     /**
      * Public address used to receive transactions. Case sensitive.
      * @example ALq7AWrhAueN6mJNqk6FHJjnsEoPRytLdW
      */
-    pub fn get_address(&self) -> String {
-        if self._address {
-            return self._address;
-        } else {
-            self._address = core.getAddressFromScriptHash(self.scriptHash);
-            return self._address;
+    pub fn get_address(self) -> String {
+        match self._address {
+            Some(addr) => addr,
+            None => {
+                self._address = core.getAddressFromScriptHash(self.scriptHash);
+                self._address?
+            }
         }
     }
 
     /**
      * self is the safe way to get a key without it throwing an error.
      */
-    pub fn tryGet(
-        keyType:
-    | "WIF"
-    | "privateKey"
-    | "publicKey"
-    | "encrypted"
-    | "scriptHash"
-    | "address"
-    ) -> String {
-    switch (keyType) {
-    case "encrypted":
-    return self._encrypted | | "";
-    case "WIF":
-    return self._WIF | | "";
-    case "privateKey":
-    return self._privateKey || "";
-    case "publicKey":
-    return self._publicKey | | "";
-    case "scriptHash":
-    return self._scriptHash | | "";
-    case "address":
-    return self._address | | "";
+    pub fn tryGet(&self, key_type: &str) -> &Option<String> {
+        match key_type.to_lowercase().as_str() {
+            "encrypted" => &self._encrypted,
+            "WIF" => &self._wif,
+            "privateKey" =>
+                &self._private_key,
+            "publicKey" =>
+                &self._public_key,
+            "scriptHash" =>
+                &self._scriptHash,
+            "address" =>
+                &self._address,
+            _ => None
+        }
     }
 
     /**
      * Encrypts the current privateKey and return the Account object.
      */
-    pub fn encrypt(&self,
-                   keyphrase: string,
-                   scryptParams: ScryptParams = DEFAULT_SCRYPT,
-    ) -> &self {
-        return Promise.resolve()
-            .then((;_) => encrypt(self.privateKey, keyphrase, scryptParams))
-        .then((encrypted) => {
-            self._encrypted = encrypted;
-            return self;
-        });
+    pub fn encrypt(mut self, keyphrase: &str) -> Self {
+        let encrypted = Nep2::get_nep2_from_private_key(&(&self.key.to_hex_string() as PrivateKeyHex), keyphrase).unwrap();
+        self._encrypted = Some(encrypted.to_string());
+
+        self
     }
 
     /**
      * Decrypts the encrypted key and return the Account object.
      */
-    pub fn decrypt(
-        &self,
-        keyphrase: string,
-        scryptParams: ScryptParams = DEFAULT_SCRYPT,
-    ) -> &self {
-        return Promise.resolve()
-            .then((;_) => decrypt(self.encrypted, keyphrase, scryptParams))
-        .then((wif) => {
-            self._WIF = wif;
-            self._update_contract_script();
-            return self;
-        });
+    pub fn decrypt(mut self, keyphrase: &str) -> Self {
+        let decrypted = Nep2::get_private_key_from_nep2(&self._encrypted?, keyphrase).unwrap();
+        self._private_key = Some(decrypted.to_string());
+
+        // self
+        // return Promise.resolve()
+        //     .then((;_) => decrypt(self.encrypted, keyphrase, scryptParams))
+        // .then((wif) => {
+        //     self._wif = wif;
+        //     self._update_contract_script();
+        //     return self;
+        // });
+
+        self
     }
 
     /**
      * Export Account as a WalletAccount object.
      */
-    pub fn export(&self) -> Account {
+    pub fn export(&self) -> AccountJSON {
         let mut key = "";
-        if self._privateKey && !self._encrypted {
+        if self._private_key && !self._encrypted {
             panic!("Encrypt private key first!");
         }
         if self._encrypted {
             key = self._encrypted;
         }
-        Account {
-            address: self.address,
+        AccountJSON {
+            address: self._address?.clone(),
             label: self.label,
             is_default: self.is_default,
             lock: self.lock,
             key,
             contract: self.contract.clone(),
-            extra: self.extra,
-        }
+            extra: &self.extra,
+        };
+
+        self
     }
 
     pub fn equals(&self, other: &Account) -> bool {
         self.address == other.address
     }
 
+
+
     /**
      * Attempts to update the contract.script field if public key is available.
      */
-    fn _update_contract_script(&self) {
+    fn _update_contract_script(mut self) -> Self {
         if self.contract.script == "" {
-            let publicKey = self.publicKey;
+            let public_key = self.publicKey;
             self.contract.script = core.getVerificationScriptFromPublicKey(
-                publicKey
+                public_key
             );
             self._scriptHash = self._get_script_hash_from_verification_script();
         }
+        self
     }
 
     fn _get_script_hash_from_verification_script(&self) -> String {
         return reverseHex(hash160(self.contract.script));
+    }
+}
+
+impl KeyTrait for Account{
+    fn deserialize(&self, hex: &str) -> Result<_, dyn Error> {
+        unimplemented!()
+    }
+
+    fn serialize(&self) -> Result<String, dyn Error> {
+        unimplemented!()
+    }
+
+    fn to_hex(&self) -> String {
+        unimplemented!()
+    }
+
+    fn to_slice(&self) -> &[u8] {
+        unimplemented!()
+    }
+
+    fn equals(&self, other: &_) -> bool {
+        unimplemented!()
     }
 }
 

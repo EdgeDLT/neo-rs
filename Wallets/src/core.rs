@@ -54,7 +54,7 @@ pub fn getWIFFromPrivateKey(privateKey: string) -> Result<&str,dyn Error> {
 /**
  * Converts a public key to verification script form.
  * VerificationScript serves a very niche purpose.
- * It is attached as part of the signature when signing a transaction.
+ * It is attached as part of the signature when signing a Transaction.
  * Thus, the name 'scriptHash' instead of 'keyHash' is because we are hashing the verificationScript and not the PublicKey.
  */
 pub fn get_verification_script_from_public_key(
@@ -95,8 +95,8 @@ pub fn get_script_hash_from_address(addr: &str) -> Result<&str,dyn Error> {
 }
 
 /**
- * Generates a signature of the transaction based on given private key.
- * @param tx Serialized unsigned transaction.
+ * Generates a signature of the Transaction based on given private key.
+ * @param tx Serialized unsigned Transaction.
  * @param privateKey Private Key.
  * @return Signature. Does not include tx.
  */

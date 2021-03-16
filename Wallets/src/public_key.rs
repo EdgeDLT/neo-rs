@@ -9,6 +9,9 @@ use std::fmt::Display;
 use std::fmt;
 use serde::{Serialize,Deserialize};
 use failure::Fail;
+use crate::key_trait::KeyTrait;
+use std::error::Error;
+
 /// Represents an  public key
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash, Serialize, Deserialize)]
 pub struct PublicKey(pub [u8; PUBLIC_KEY_BIN_LEN]);
@@ -30,6 +33,28 @@ impl PublicKey {
     /// Returns the hex string of the public key
     pub fn to_hex_string(&self) -> String {
         hex::encode(&self.0)
+    }
+}
+
+impl KeyTrait for PublicKey{
+    fn deserialize(&self, hex: &str) -> Result<_, dyn Error> {
+        unimplemented!()
+    }
+
+    fn serialize(&self) -> Result<String, dyn Error> {
+        unimplemented!()
+    }
+
+    fn to_hex(&self) -> String {
+        unimplemented!()
+    }
+
+    fn to_slice(&self) -> &[u8] {
+        unimplemented!()
+    }
+
+    fn equals(&self, other: &PublicKey) -> bool {
+        unimplemented!()
     }
 }
 

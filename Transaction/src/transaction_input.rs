@@ -4,7 +4,7 @@ use std::error::Error;
 use neo_core::misc::reverse_hex;
 use crate::utils::get_asset_id_by_symbol;
 use neo_core::fixed8::Fixed8;
-use crate::txmodel::{Transaction, Transaction_Trait, transaction_param};
+use crate::txmodel::{Transaction, Transaction_Trait, TransactionParam};
 use neo_core::convert::{num2hexstring, hex2int};
 
 
@@ -15,16 +15,16 @@ pub struct TransactionInput {
 }
 
 /**
- * A reference to a transaction_output in another confirmed transaction.
- * This is used to denote UTXO that will be spent in self transaction.
+ * A reference to a transaction_output in another confirmed Transaction.
+ * This is used to denote UTXO that will be spent in self Transaction.
  */
-impl transaction_param for TransactionInput {
+impl TransactionParam for TransactionInput {
     fn deserialize(&self, hex: string) -> Result<TransactionInput, Error> {
         let ss = StringStream.new(hex);
-        self.fromStream(ss)
+        self.from_stream(ss)
     }
 
-    fn fromStream(&self, ss: &mut StringStream) -> Result<TransactionInput, Error> {
+    fn from_stream(&self, ss: &mut StringStream) -> Result<TransactionInput, Error> {
         let prevHash = reverse_hex(ss.read(32)?.as_str())?;
         let prevIndex = hex2int(reverse_hex(ss.read(2)?.as_str())?)?;
         Ok(TransactionInput { prevHash, prevIndex: prevIndex as u32 })

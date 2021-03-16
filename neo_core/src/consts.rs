@@ -74,7 +74,7 @@ pub enum NeoNetwork {
 }
 
 
-// specified by nep2, same as bip38
+// specified by Nep2, same as bip38
 
 
 // pub const NEP_FLAG: &str  = "e0";

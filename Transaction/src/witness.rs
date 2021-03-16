@@ -60,9 +60,9 @@ impl Transaction for Witness {
 }
 
 /**
- * A Witness is a section of VM code that is ran during the verification of the transaction.
+ * A Witness is a section of VM code that is ran during the verification of the Transaction.
  *
- * For example, the most common witness is the VM Script that pushes the ECDSA signature into the VM and calling CHECKSIG to prove the authority to spend the TransactionInputs in the transaction.
+ * For example, the most common witness is the VM Script that pushes the ECDSA signature into the VM and calling CHECKSIG to prove the authority to spend the TransactionInputs in the Transaction.
  */
 impl Witness {
     pub fn from_signature(&self, sig: &str, publicKey: &str) -> Witness {

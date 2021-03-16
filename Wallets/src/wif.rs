@@ -4,6 +4,7 @@ use std::str::FromStr;
 use neo_crypto::{FromBase58, ToBase58};
 
 use crate::private_key::PrivateKey;
+use crate::key_trait::KeyTrait;
 
 // WIF represents a wallet import format.
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash)]
@@ -83,6 +84,28 @@ impl WIF {
     }
 }
 
+
+impl KeyTrait for WIF{
+    fn deserialize(&self, hex: &str) -> Result<_, dyn Error> {
+        unimplemented!()
+    }
+
+    fn serialize(&self) -> Result<String, dyn Error> {
+        unimplemented!()
+    }
+
+    fn to_hex(&self) -> String {
+        unimplemented!()
+    }
+
+    fn to_slice(&self) -> &[u8] {
+        unimplemented!()
+    }
+
+    fn equals(&self, other: &_) -> bool {
+        unimplemented!()
+    }
+}
 
 #[derive(Debug, Fail)]
 pub enum WifKeyError {

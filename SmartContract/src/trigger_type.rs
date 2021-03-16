@@ -5,7 +5,7 @@ mod SmartContract {
         PostPersist = 0x02,
         /// <summary>
         /// The verification trigger indicates that the contract is being invoked as a verification function.
-        /// The verification function can accept multiple parameters, and should return a boolean value that indicates the validity of the transaction or block.
+        /// The verification function can accept multiple parameters, and should return a boolean value that indicates the validity of the Transaction or block.
         /// The entry point of the contract will be invoked if the contract is triggered by Verification:
         ///     main(...);
         /// The entry point of the contract must be able to handle this type of invocation.

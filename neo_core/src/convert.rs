@@ -31,6 +31,7 @@ pub fn hexstring2ab(s: &str) -> Result<Box<[u8]>, Error> {
     Ok(hex::decode(s).unwrap().into_boxed_slice())
 }
 
+
 /**
  * @param arr
  * @returns HEX string
