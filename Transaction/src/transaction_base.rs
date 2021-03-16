@@ -28,34 +28,34 @@ impl Transaction for BaseTransaction {
     }
 
 
-    fn add_output(&mut self, txOut: &TransactionOutput) -> &self {
+    fn add_output(mut self, txOut: &TransactionOutput) -> Self {
         self.outputs.push(txOut.clone());
         self
     }
 
-    fn add_intent(&mut self, symbol: &str, value: Fixed8, address: &str) -> &self {
+    fn add_intent(mut self, symbol: &str, value: Fixed8, address: &str) -> Self {
         self.outputs.push(TransactionOutput.fromIntent(symbol, value, address));
         self
     }
 
-    fn add_attribute(&mut self, usage: usize, data: &str) -> &self {
+    fn add_attribute(mut self, usage: usize, data: &str) -> Self {
         self.attributes.push(TransactionAttribute { usage: toTxAttrUsage(usage)?, data });
         self
     }
 
-    fn add_remark(&mut self, remark: &str) -> &self {
+    fn add_remark(mut self, remark: &str) -> Self {
         let hexRemark = str2hexstring(&remark);
         self.add_attribute(TxAttrUsage::Remark as usize, hexRemark);
         self
     }
 
-    fn add_witness(&mut self, witness: &Witness) -> &self {
+    fn add_witness(mut self, witness: &Witness) -> Self {
         self.scripts.push(witness.clone());
 
         // self.scripts = self.scripts.sort(
         //     (w1, w2) => parseInt(w1.scriptHash, 16) - parseInt(w2.scriptHash, 16)
         // );
-        self.scripts.sort_by(|a,b| a.get_script_hash().cmp(&b.get_script_hash()));
+        self.scripts.sort_by(|a, b| a.get_script_hash().cmp(&b.get_script_hash()));
 
 
         self
@@ -69,7 +69,7 @@ impl Transaction for BaseTransaction {
         unimplemented!()
     }
 
-    fn export(&self) -> dyn Transaction {
+    fn export(&self) -> Box<dyn Transaction> {
         unimplemented!()
     }
 }
@@ -101,11 +101,11 @@ impl BaseTransaction {
      * @param address The address to send to.
      */
     pub fn add_intent(
-        &mut self,
+        mut self,
         symbol: &str,
         value: &Fixed8,
         address: &str,
-    ) -> &self {
+    ) -> Self {
         self.outputs.push(TransactionOutput.fromIntent(symbol, value, address));
         self
     }
@@ -132,14 +132,13 @@ impl BaseTransaction {
      * Adds an Witness to the Transaction and automatically sorts the witnesses according to scripthash.
      * @param witness The Witness object to add.
      */
-    pub fn add_witness(&mut self, witness: Witness) -> &self {
-
+    pub fn add_witness(mut self, witness: Witness) -> Self {
         self.scripts.push(witness);
 
         self.scripts = self.scripts.sort(
             (w1, w2) => parseInt(w1.scriptHash, 16) - parseInt(w2.scriptHash, 16)
         );
-        &self
+        self
     }
 
     /**

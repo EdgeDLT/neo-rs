@@ -35,6 +35,9 @@ impl Fixed8 {
     pub const MIN_VALUE: Fixed8 = Fixed8(Fixed8::MIN_FIXED8_HEX / Fixed8::DECIMALS);
 
 
+    pub fn value(&self) -> i64 {
+        self.0
+    }
     pub fn from_hex(hex: &str) -> Result<Fixed8, Error> {
         Ok(Fixed8(i64::from_str_radix(hex, 16).unwrap()))
     }

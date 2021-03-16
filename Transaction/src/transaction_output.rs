@@ -1,11 +1,12 @@
-use neo_core::{stringstream::StringStream, KeyPair::KeyPair, KeyPair};
-use neo_crypto::hex;
 use std::error::Error;
-use neo_core::misc::reverse_hex;
-use crate::utils::get_asset_id_by_symbol;
-use neo_core::fixed8::Fixed8;
-use crate::txmodel::{Transaction, Transaction_Trait, TransactionParam};
 
+use neo_core::{KeyPair, KeyPair::KeyPair, stringstream::StringStream};
+use neo_core::fixed8::Fixed8;
+use neo_core::misc::reverse_hex;
+use neo_crypto::hex;
+
+use crate::txmodel::{Transaction, Transaction_Trait, TransactionParam};
+use crate::utils::get_asset_id_by_symbol;
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Hash, Serialize, Deserialize)]
 pub struct TransactionOutput {
@@ -36,7 +37,6 @@ impl TransactionOutput {
  * self represents a spendable coin in the system.
  */
 impl TransactionParam for TransactionOutput {
-
     fn deserialize(&self, hex: &str) -> Result<TransactionOutput, Error> {
         let mut ss = StringStream.new(hex);
         self.from_stream(ss)
@@ -61,7 +61,7 @@ impl TransactionParam for TransactionOutput {
 
     fn equals(&self, other: &TransactionOutput) -> bool {
         self.asset_id == other.asset_id &&
-            self.value.equals(&other.value) &&
+            self.value.equals(other.value.value()) &&
             self.script_hash == other.script_hash
     }
 
