@@ -1,3 +1,22 @@
+use self::Types::*;
+
+mod OpCode;
+mod VMState;
+mod Debugger;
+
+mod Types;
+mod Instruction;
+mod Script;
+mod ExecutionEngineLimits;
+mod ExecutionEngine;
+mod ExecutionContext;
+mod ExceptionHandlingState;
+mod ExceptionHandlingContext;
+mod EvaluationStack;
+mod BadScriptException;
+mod OperandSizeAttribute;
+mod ReferenceCounter;
+
 #[cfg(test)]
 mod tests {
     #[test]
