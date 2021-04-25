@@ -2,7 +2,7 @@ use crate::OpCode::OpCode;
 
 pub struct Instruction {
     pub OpCode: OpCode,
-    Operand: ReadOnlyMemory<u8>,
+    pub(crate) Operand: ReadOnlyMemory<u8>,
     OperandSizePrefixTable: [i32; 256],
     OperandSizeTable: [i32; 256],
 }

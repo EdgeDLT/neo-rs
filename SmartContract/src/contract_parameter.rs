@@ -97,8 +97,8 @@ impl ContractParam {
     }
 
     /**
-     * Creates an Integer ContractParam. self is converted into an BigInteger in NeoVM.
-     * @param {string | number } value - A value that can be parsed to an BigInteger. Numbers or numeric strings are accepted.
+     * Creates an Integer ContractParam. self is converted into an BigInt in NeoVM.
+     * @param {string | number } value - A value that can be parsed to an BigInt. Numbers or numeric strings are accepted.
      * @example
      * ContractParam.integer(128)
      * ContractParam.integer("128")

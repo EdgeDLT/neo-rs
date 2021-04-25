@@ -48,7 +48,7 @@ namespace Neo.VM.Types
                 case StackItemType.Integer:
                     if (InnerBuffer.Length > Integer.MaxSize)
                         throw new InvalidCastException();
-                    return new BigInteger(InnerBuffer);
+                    return new BigInt(InnerBuffer);
                 case StackItemType.ByteString:
                     byte[] clone = new byte[InnerBuffer.Length];
                     InnerBuffer.CopyTo(clone.AsSpan());

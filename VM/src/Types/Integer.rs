@@ -4,7 +4,7 @@
 // [DebuggerDisplay("Type={GetType().Name}, Value={value}")]
 
 pub struct Integer {
-    value: BigInteger,
+    value: BigInt,
 }
 
 impl PrimitiveType for Integer {}
@@ -27,7 +27,7 @@ public override StackItemType Type => StackItemType.Integer;
 /// Create an integer with the specified value.
 /// </summary>
 /// <param name="value">The value of the integer.</param>
-public Integer(BigInteger value)
+public Integer(BigInt value)
 {
 if (value.IsZero)
 {
@@ -58,7 +58,7 @@ public override int GetHashCode()
 return HashCode.Combine(value);
 }
 
-public override BigInteger GetInteger()
+public override BigInt GetInteger()
 {
 return value;
 }
@@ -66,53 +66,53 @@ return value;
 
 public static implicit operator Integer(sbyte value)
 {
-return (BigInteger)value;
+return (BigInt)value;
 }
 
 
 public static implicit operator Integer(byte value)
 {
-return (BigInteger)value;
+return (BigInt)value;
 }
 
 
 public static implicit operator Integer(short value)
 {
-return (BigInteger)value;
+return (BigInt)value;
 }
 
 
 public static implicit operator Integer(ushort value)
 {
-return (BigInteger)value;
+return (BigInt)value;
 }
 
 
 public static implicit operator Integer(int value)
 {
-return (BigInteger)value;
+return (BigInt)value;
 }
 
 
 public static implicit operator Integer(uint value)
 {
-return (BigInteger)value;
+return (BigInt)value;
 }
 
 
 public static implicit operator Integer(long value)
 {
-return (BigInteger)value;
+return (BigInt)value;
 }
 
 
 public static implicit operator Integer(ulong value)
 {
-return (BigInteger)value;
+return (BigInt)value;
 }
 
 
-public static implicit operator Integer(BigInteger value)
+public static implicit operator Integer(BigInt value)
 {
 return new Integer(value);
 }

@@ -101,7 +101,7 @@ pub trait StackItem
     /// Get the integer value represented by the VM object.
     /// </summary>
     /// <returns>The integer value represented by the VM object.</returns>
-    fn GetInteger() -> BigInteger { panic!() }
+    fn GetInteger() -> BigInt { panic!() }
     // {
     // throw new InvalidCastException();
     // }
@@ -186,7 +186,7 @@ pub trait StackItem
     }
 
 
-    fn static implicit operator StackItem(BigInteger value)
+    fn static implicit operator StackItem(BigInt value)
     {
     return (Integer)value;
     }

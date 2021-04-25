@@ -46,9 +46,9 @@ namespace Neo.VM.Types
             return HashCode.Combine(value);
         }
 
-        public override BigInteger GetInteger()
+        public override BigInt GetInteger()
         {
-            return value ? BigInteger.One : BigInteger.Zero;
+            return value ? BigInt.One : BigInt.Zero;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

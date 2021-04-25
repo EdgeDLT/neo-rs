@@ -61,10 +61,10 @@ namespace Neo.VM.Types
             }
         }
 
-        public override BigInteger GetInteger()
+        public override BigInt GetInteger()
         {
             if (Size > Integer.MaxSize) throw new InvalidCastException($"MaxSize exceed: {Size}");
-            return new BigInteger(GetSpan());
+            return new BigInt(GetSpan());
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -15,11 +15,11 @@ namespace Neo.VM
             StrictUTF8.EncoderFallback = EncoderFallback.ExceptionFallback;
         }
 
-        public static BigInteger Sqrt(this BigInteger value)
+        public static BigInt Sqrt(this BigInt value)
         {
             if (value < 0) throw new InvalidOperationException("value can not be negative");
-            if (value.IsZero) return BigInteger.Zero;
-            if (value < 4) return BigInteger.One;
+            if (value.IsZero) return BigInt.Zero;
+            if (value < 4) return BigInt.One;
 
             var z = value;
             var x = value / 2 + 1;

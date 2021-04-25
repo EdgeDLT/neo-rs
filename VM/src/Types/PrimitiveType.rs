@@ -90,7 +90,7 @@
         }
 
         
-        fn  implicit operator PrimitiveType(BigInteger value)
+        fn  implicit operator PrimitiveType(BigInt value)
         {
             return (Integer)value;
         }

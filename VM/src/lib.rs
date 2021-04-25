@@ -16,6 +16,10 @@ mod EvaluationStack;
 mod BadScriptException;
 mod OperandSizeAttribute;
 mod ReferenceCounter;
+mod Slot;
+mod ScriptBuilder;
+mod Unsafe;
+mod VMUnhandledException;
 
 #[cfg(test)]
 mod tests {

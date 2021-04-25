@@ -1,10 +1,11 @@
 use std::any::Any;
 use std::collections::HashMap;
 
+use crate::EvaluationStack::EvaluationStack;
 use crate::ExceptionHandlingContext::ExceptionHandlingContext;
 use crate::Instruction::Instruction;
-use crate::Script::Script;
 use crate::ReferenceCounter::ReferenceCounter;
+use crate::Script::Script;
 
 struct SharedStates {
     Script: Script,
@@ -36,7 +37,7 @@ pub struct ExecutionContext {
     /// <summary>
     /// The script to run in this context.
     /// </summary>
-    Script: Script,// => shared_states.Script;
+    pub(crate) Script: Script,// => shared_states.Script;
 
     /// <summary>
     /// The evaluation stack for this context.
@@ -70,37 +71,33 @@ impl ExecutionContext {
     pub fn shared_states(&self) -> &SharedStates {
         &self.shared_states
     }
-    pub fn instructionPointer(&self) -> i32 {
-        self.instructionPointer
-    }
     pub fn RVCount(&self) -> i32 {
         self.RVCount
     }
     pub fn Script(&self) -> Script {
         self.Script
     }
-    pub fn EvaluationStack(&self) -> _ {
-        self.EvaluationStack
+    pub fn EvaluationStack(&self) -> &EvaluationStack {
+        &self.EvaluationStack
     }
-    pub fn StaticFields(&self) -> &Option<_> {
-        &self.StaticFields
-    }
-    pub fn LocalVariables(&self) -> &Option<_> {
-        &self.LocalVariables
-    }
-    pub fn Arguments(&self) -> &Option<_> {
-        &self.Arguments
-    }
-    pub fn TryStack(&self) -> &Option<_> {
-        &self.TryStack
-    }
+    // pub fn StaticFields(&self) -> &Option<_> {
+    //     &self.StaticFields
+    // }
+    // pub fn LocalVariables(&self) -> &Option<_> {
+    //     &self.LocalVariables
+    // }
+    // pub fn Arguments(&self) -> &Option<_> {
+    //     &self.Arguments
+    // }
+    // pub fn TryStack(&self) -> &Option<_> {
+    //     &self.TryStack
+    // }
 }
 
 impl ExecutionContext {
     pub fn set_shared_states(&mut self, shared_states: SharedStates) {
         self.shared_states = shared_states;
     }
-
     pub fn set_instructionPointer(&mut self, instructionPointer: i32) {
         if value < 0 || value > self.Script.Length() { panic!() }
         // throw new ArgumentOutOfRangeException(nameof(value));
@@ -110,27 +107,21 @@ impl ExecutionContext {
     pub fn set_RVCount(&mut self, RVCount: i32) {
         self.RVCount = RVCount;
     }
-
     pub fn set_Script(&mut self, Script: Script) {
         self.Script = Script;
     }
-
-    pub fn set_EvaluationStack(&mut self, EvaluationStack: _) {
+    pub fn set_EvaluationStack(&mut self, EvaluationStack: EvaluationStack) {
         self.EvaluationStack = EvaluationStack;
     }
-
     pub fn set_StaticFields(&mut self, StaticFields: Option<_>) {
         self.StaticFields = StaticFields;
     }
-
     pub fn set_LocalVariables(&mut self, LocalVariables: Option<_>) {
         self.LocalVariables = LocalVariables;
     }
-
     pub fn set_Arguments(&mut self, Arguments: Option<_>) {
         self.Arguments = Arguments;
     }
-
     pub fn set_TryStack(&mut self, TryStack: Option<_>) {
         self.TryStack = TryStack;
     }
@@ -159,20 +150,20 @@ impl ExecutionContext
         GetInstruction(self.instructionPointer + &self.CurrentInstruction().Size)
     }
 
-    fn ExecutionContext(script: &Script, rvcount: i32, referenceCounter: &ReferenceCounter)
-    : this(new SharedStates(script, referenceCounter), rvcount, 0)
-    {}
+    // fn ExecutionContext(script: &Script, rvcount: i32, referenceCounter: &ReferenceCounter)
+    // : this(new SharedStates(script, referenceCounter), rvcount, 0)
+    // {}
 
-    fn ExecutionContext(SharedStates shared_states, int rvcount, int initialPosition)
-    {
-        if (rvcount < -1 | | rvcount > ushort.MaxValue)
-        throw
-        new
-        ArgumentOutOfRangeException(nameof(rvcount));
-        this.shared_states = shared_states;
-        this.RVCount = rvcount;
-        this.InstructionPointer = initialPosition;
-    }
+    // fn ExecutionContext(SharedStates shared_states, int rvcount, int initialPosition)
+    // {
+    //     if (rvcount < -1 | | rvcount > ushort.MaxValue)
+    //     throw
+    //     new
+    //     ArgumentOutOfRangeException(nameof(rvcount));
+    //     this.shared_states = shared_states;
+    //     this.RVCount = rvcount;
+    //     this.InstructionPointer = initialPosition;
+    // }
 
     /// <summary>
     /// Clones the context so that they share the same script, stack, and static fields.
@@ -214,7 +205,7 @@ impl ExecutionContext
         value;
     }
 
-    fn MoveNext(&self) -> bool
+    fn MoveNext(&mut self) -> bool
     {
         self.instructionPointer += CurrentInstruction.Size;
         return InstructionPointer < Script.Length;
