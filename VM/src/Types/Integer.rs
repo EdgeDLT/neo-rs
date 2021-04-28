@@ -1,3 +1,11 @@
+use crate::Types::PrimitiveType::PrimitiveType;
+use crate::Types::StackItem::StackItem;
+use crate::Types::StackItemType::StackItemType;
+use num::traits::{Zero, One};
+use std::mem::replace;
+use num::bigint::{BigUint, BigInt, Sign};
+use crate::Types::ReadOnlyMemory::ReadOnlyMemory;
+
 /// <summary>
 /// Represents an integer value in the VM.
 /// </summary>
@@ -7,7 +15,26 @@ pub struct Integer {
     value: BigInt,
 }
 
-impl PrimitiveType for Integer {}
+impl StackItem for Integer {
+    fn Type() -> StackItemType {
+        todo!()
+    }
+
+    fn ConvertTo(&self, typ: StackItemType) -> Self {
+        todo!()
+    }
+}
+
+impl PrimitiveType for Integer {
+    fn Memory(&self) -> Vec<u8> {
+        self.value.is_zero()?
+        ReadOnlyMemory < byte >.Empty: value.ToByteArray();
+    }
+
+    fn Size(&self) -> i32 {
+        todo!()
+    }
+}
 
 impl Integer
 {
@@ -16,9 +43,9 @@ impl Integer
     /// </summary>
     const MaxSize: i32 = 32;
     const Zero: i32 = 0;
-    private readonly  value;
 
-    internal override ReadOnlyMemory<byte> Memory => value.IsZero ? ReadOnlyMemory<byte>.Empty : value.ToByteArray();
+
+    // internal override ReadOnlyMemory<byte> Memory =>
     public override int Size { get;
 }
 public override StackItemType Type => StackItemType.Integer;

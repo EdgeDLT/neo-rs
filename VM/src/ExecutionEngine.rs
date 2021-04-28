@@ -1689,7 +1689,7 @@ impl ExecutionEngine
         if self.InvocationStack.Count >= self.Limits.MaxInvocationStackSize {panic!();}
         // throw
         // new
-        // InvalidOperationException($ "MaxInvocationStackSize exceed: {InvocationStack.Count}");
+        // InvalidOperationException($ "MaxInvocationStackSize exceed: {InvocationStack.count}");
         InvocationStack.Push(context);
         if (self.EntryContext.is_none()) {EntryContext = context;}
 
@@ -1802,7 +1802,7 @@ impl ExecutionEngine
     protected virtual void PostExecuteInstruction()
     {
     if (ReferenceCounter.CheckZeroReferred() > Limits.MaxStackSize)
-    throw new InvalidOperationException( $ "MaxStackSize exceed: {ReferenceCounter.Count}");
+    throw new InvalidOperationException( $ "MaxStackSize exceed: {ReferenceCounter.count}");
     }
 
     /// <summary>

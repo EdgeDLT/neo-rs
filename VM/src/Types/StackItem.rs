@@ -6,6 +6,10 @@
 // using System.Runtime.CompilerServices;
 
 use crate::Types::StackItemType::StackItemType;
+use std::any::Any;
+use std::error::Error;
+use crate::Types::StackItemType::StackItemType::InteropInterface;
+use num::BigInt;
 
 // namespace Neo.VM.Types
 // {
@@ -14,62 +18,19 @@ use crate::Types::StackItemType::StackItemType;
 /// </summary>
 pub trait StackItem
 {
-    /// <summary>
-    /// Represents <see langword="false"/> in the VM.
-    /// </summary>
-    // fn  StackItem False { get; } = new Boolean(false);
+    fn False() -> bool { false }
 
-    /// <summary>
-    /// Indicates whether the object is <see cref="Null"/>.
-    /// </summary>
-    //  fn IsNull()->bool;
+    fn IsNull() -> bool { false }
 
-    /// <summary>
-    /// Represents <see langword="null"/> in the VM.
-    /// </summary>
-    // pub static StackItem Null { get; } = new Null();
+    fn True() -> bool { true }
 
-    /// <summary>
-    /// Represents <see langword="true"/> in the VM.
-    /// </summary>
-    // pub static StackItem True { get; } = new Boolean(true);
-
-    /// <summary>
-    /// The type of this VM object.
-    /// </summary>
     fn Type() -> StackItemType;
 
-    /// <summary>
-    /// Convert the VM object to the specified type.
-    /// </summary>
-    /// <param name="type">The type to be converted to.</param>
-    /// <returns>The converted object.</returns>
     fn ConvertTo(&self, typ: StackItemType) -> Self;
-    // {
-    //     if (typ == Type) { return *self; }
-    //
-    //     if (typ == StackItemType.Boolean)
-    //     return GetBoolean();
-    // }
 
-    /// <summary>
-    /// Copy the object and all its children.
-    /// </summary>
-    /// <returns>The copied object.</returns>
     fn DeepCopy(&self) -> &Self
     {
         self.clone()
-    }
-
-    StackItem DeepCopy(Dictionary<StackItem, StackItem> refMap)
-    {
-    return this;
-    }
-
-    fn Equals(&self, obj: &StackItem) -> bool
-    {
-        if (self == obj) { return true; }
-        Equals(item)
     }
 
     fn Equals(&self, other: &StackItem) -> bool
@@ -77,142 +38,108 @@ pub trait StackItem
         self == other
     }
 
-    /// <summary>
-    /// Wrap the specified <see cref="object"/> and return an <see cref="InteropInterface"/> containing the <see cref="object"/>.
-    /// </summary>
-    /// <param name="value">The wrapped <see cref="object"/>.</param>
-    /// <returns></returns>
-    fn FromInterface(object? value) -> StackItem
+    fn FromInterface(&self, value: Option<dyn Any>) -> Result<StackItem, Error>
     {
-        if (value
-        is
-        null) return Null;
-        return new;
-        InteropInterface(value);
+        if value.is_none() { return Err(()); }
+
+        InteropInterface::new(value)
     }
 
-    /// <summary>
-    /// Get the boolean value represented by the VM object.
-    /// </summary>
-    /// <returns>The boolean value represented by the VM object.</returns>
-    fn GetBoolean() -> bool { false }
+    fn GetBoolean(&self) -> bool { false }
 
-    /// <summary>
-    /// Get the integer value represented by the VM object.
-    /// </summary>
-    /// <returns>The integer value represented by the VM object.</returns>
-    fn GetInteger() -> BigInt { panic!() }
-    // {
-    // throw new InvalidCastException();
-    // }
+    fn GetInteger(&self) -> BigInt { panic!() }
 
-    /// <summary>
-    /// Get the <see cref="object"/> wrapped by this interface and convert it to the specified type.
-    /// </summary>
-    /// <typeparam name="T">The type to convert to.</typeparam>
-    /// <returns>The wrapped <see cref="object"/>.</returns>
-    fn GetInterface<T>() -> T
+    fn GetInterface<T>(&self) -> T
         where T: Self
     {
         panic!()
-        // throw new InvalidCastException();
     }
 
-    /// <summary>
-    /// Get the readonly span used to read the VM object data.
-    /// </summary>
-    /// <returns></returns>
-    fn GetSpan() -> ReadOnlySpan<u8>
+    fn GetSpan(&self) -> ReadOnlySpan<u8>
     {
         panic!();
-        // throw new InvalidCastException();
     }
 
-    /// <summary>
-    /// Get the <see cref="string"/> value represented by the VM object.
-    /// </summary>
-    /// <returns>The <see cref="string"/> value represented by the VM object.</returns>
-    fn GetString() -> String
+    fn GetString(&self) -> String
     {
         return Utility.StrictUTF8.GetString(GetSpan());
     }
 
 
-    fn static implicit operator StackItem(sbyte value)
-    {
-    return (Integer)value;
-    }
-
-
-    fn static implicit operator StackItem(byte value)
-    {
-    return (Integer)value;
-    }
-
-
-    fn static implicit operator StackItem(short value)
-    {
-    return (Integer)value;
-    }
-
-
-    fn static implicit operator StackItem(ushort value)
-    {
-    return (Integer)value;
-    }
-
-
-    fn static implicit operator StackItem(int value)
-    {
-    return (Integer)value;
-    }
-
-
-    fn static implicit operator StackItem(uint value)
-    {
-    return (Integer)value;
-    }
-
-
-    fn static implicit operator StackItem(long value)
-    {
-    return (Integer)value;
-    }
-
-
-    fn static implicit operator StackItem(ulong value)
-    {
-    return (Integer)value;
-    }
-
-
-    fn static implicit operator StackItem(BigInt value)
-    {
-    return (Integer)value;
-    }
-
-
-    fn static implicit operator StackItem(bool value)
-    {
-    return value ? True: False;
-    }
-
-
-    fn static implicit operator StackItem(byte[] value)
-    {
-    return (ByteString)value;
-    }
-
-
-    fn static implicit operator StackItem(ReadOnlyMemory<byte> value)
-    {
-    return (ByteString)value;
-    }
-
-
-    fn static implicit operator StackItem(string value)
-    {
-    return (ByteString)value;
-    }
-}
+// fn static implicit operator StackItem(sbyte value)
+// {
+// return (Integer)value;
+// }
+//
+//
+// fn static implicit operator StackItem(byte value)
+// {
+// return (Integer)value;
+// }
+//
+//
+// fn static implicit operator StackItem(short value)
+// {
+// return (Integer)value;
+// }
+//
+//
+// fn static implicit operator StackItem(ushort value)
+// {
+// return (Integer)value;
+// }
+//
+//
+// fn static implicit operator StackItem(int value)
+// {
+// return (Integer)value;
+// }
+//
+//
+// fn static implicit operator StackItem(uint value)
+// {
+// return (Integer)value;
+// }
+//
+//
+// fn static implicit operator StackItem(long value)
+// {
+// return (Integer)value;
+// }
+//
+//
+// fn static implicit operator StackItem(ulong value)
+// {
+// return (Integer)value;
+// }
+//
+//
+// fn static implicit operator StackItem(BigInt value)
+// {
+// return (Integer)value;
+// }
+//
+//
+// fn static implicit operator StackItem(bool value)
+// {
+// return value ? True: False;
+// }
+//
+//
+// fn static implicit operator StackItem(byte[] value)
+// {
+// return (ByteString)value;
+// }
+//
+//
+// fn static implicit operator StackItem(ReadOnlyMemory<byte> value)
+// {
+// return (ByteString)value;
+// }
+//
+//
+// fn static implicit operator StackItem(string value)
+// {
+// return (ByteString)value;
+// }
 }

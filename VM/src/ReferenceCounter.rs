@@ -25,7 +25,7 @@ impl ReferenceCounter
     /// </summary>
     pub fn Count(&self) -> usize { self.references_count }
 
-    fn AddReference(&mut self, referred: &StackItem, parent: &CompoundType)
+    pub fn AddReference(&mut self, referred: &StackItem, parent: &CompoundType)
     {
         self.references_count += 1;
 

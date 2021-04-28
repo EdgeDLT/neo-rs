@@ -59,7 +59,7 @@ impl EvaluationStack
         if index > self.innerList.len() as i32 { panic!(); }
         // throw
         // new
-        // InvalidOperationException($ "Insert out of bounds: {index}/{innerList.Count}");
+        // InvalidOperationException($ "Insert out of bounds: {index}/{innerList.count}");
         self.innerList.Insert(innerList.Count - index, item);
         self.referenceCounter.AddStackReference(item);
     }
@@ -95,14 +95,14 @@ impl EvaluationStack
         let mut id = index.unwrap();
 
         if id >= self.innerList.Count { panic!(); }
-        // throw?rationException($ "Peek out of bounds: {index}/{innerList.Count}");
+        // throw?rationException($ "Peek out of bounds: {index}/{innerList.count}");
         if id < 0
         {
             id += self.innerList.len();
             if id < 0 { panic!(); }
             // throw
             // new
-            // InvalidOperationException($ "Peek out of bounds: {index}/{innerList.Count}");
+            // InvalidOperationException($ "Peek out of bounds: {index}/{innerList.count}");
         }
         self.innerList[self.innerList.len() - id - 1]
     }

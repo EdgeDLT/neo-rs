@@ -1,79 +1,84 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Numerics;
+use std::collections::HashMap;
 
-namespace Neo.VM.Types
-{
-    /// <summary>
-    /// Represents a memory block that can be used for reading and writing in the VM.
-    /// </summary>
-    [DebuggerDisplay("Type={GetType().Name}, Value={System.BitConverter.ToString(InnerBuffer).Replace(\"-\", string.Empty)}")]
-    public class Buffer : StackItem
-    {
-        /// <summary>
-        /// The internal byte array used to store the actual data.
-        /// </summary>
-        public readonly byte[] InnerBuffer;
+use crate::Types::StackItem::StackItem;
+use crate::Types::StackItemType::StackItemType;
+use crate::Types::Integer::Integer;
 
-        /// <summary>
-        /// The size of the buffer.
-        /// </summary>
-        public int Size => InnerBuffer.Length;
-        public override StackItemType Type => StackItemType.Buffer;
+pub struct Buffer {
+    InnerBuffer: Vec<u8>,
+}
 
-        /// <summary>
-        /// Create a buffer of the specified size.
-        /// </summary>
-        /// <param name="size">The size of this buffer.</param>
-        public Buffer(int size)
-        {
-            InnerBuffer = new byte[size];
-        }
 
-        /// <summary>
-        /// Create a buffer with the specified data.
-        /// </summary>
-        /// <param name="data">The data to be contained in this buffer.</param>
-        public Buffer(ReadOnlySpan<byte> data)
-            : this(data.Length)
-        {
-            if (!data.IsEmpty) data.CopyTo(InnerBuffer);
-        }
+impl StackItem for Buffer {
+    fn Type() -> StackItemType {
+        StackItemType::Buffer
+    }
 
-        public override StackItem ConvertTo(StackItemType type)
-        {
-            switch (type)
-            {
-                case StackItemType.Integer:
-                    if (InnerBuffer.Length > Integer.MaxSize)
-                        throw new InvalidCastException();
-                    return new BigInt(InnerBuffer);
-                case StackItemType.ByteString:
-                    byte[] clone = new byte[InnerBuffer.Length];
-                    InnerBuffer.CopyTo(clone.AsSpan());
-                    return clone;
-                default:
-                    return base.ConvertTo(type);
+    fn ConvertTo(&self, typ: StackItemType) -> Self {
+        match typ {
+            StackItemType::Integer => {
+                if self.InnerBuffer.len() > Integer.MaxSize { panic!() }
+
+                return new;
+                BigInt(InnerBuffer);
+            }
+            StackItemType::ByteString => {
+                byte
+                []
+                clone = new
+                byte[InnerBuffer.Length];
+                InnerBuffer.CopyTo(clone.AsSpan());
+                return clone;
+            }
+            _ => {
+                return base.ConvertTo(; type );
             }
         }
+    }
+}
 
-        internal override StackItem DeepCopy(Dictionary<StackItem, StackItem> refMap)
-        {
-            if (refMap.TryGetValue(this, out StackItem? mappedItem)) return mappedItem;
-            Buffer result = new(InnerBuffer);
-            refMap.Add(this, result);
-            return result;
-        }
+/// <summary>
+/// Represents a memory block that can be used for reading and writing in the VM.
+/// </summary>
+// [DebuggerDisplay("Type={GetType().Name}, Value={System.BitConverter.ToString(InnerBuffer).Replace(\"-\", string.Empty)}")]
+impl Buffer
+{
+    /// <summary>
+    /// The size of the buffer.
+    /// </summary>
+    // public int Size => ;
+    pub fn Size(&self) -> i32 { self.InnerBuffer.len() as i32 }
 
-        public override bool GetBoolean()
-        {
-            return true;
-        }
 
-        public override ReadOnlySpan<byte> GetSpan()
-        {
-            return InnerBuffer;
-        }
+    /// <summary>
+    /// Create a buffer with the specified data.
+    /// </summary>
+    /// <param name="data">The data to be contained in this buffer.</param>
+    // public Buffer(ReadOnlySpan<byte> data)
+    // : this(data.Length)
+    // {
+    // if ( ! data.IsEmpty) data.CopyTo(InnerBuffer);
+    // }
+
+
+    pub fn DeepCopy(&self, refMap: &HashMap<StackItem, StackItem>) -> Box<StackItem>
+    {
+        if (refMap.TryGetValue(this, out StackItem? mappedItem))
+        return mappedItem;
+
+        Buffer
+        result = new(InnerBuffer);
+        refMap.Add(this, result);
+        return result;
+    }
+
+    pub fn GetBoolean(&self) -> bool
+    {
+        true
+    }
+
+    pub fn GetSpan(&self) -> Vec<u8>
+    {
+        self.InnerBuffer.clone()
     }
 }

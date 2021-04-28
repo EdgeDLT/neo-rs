@@ -14,3 +14,4 @@ mod Pointer;
 mod Null;
 mod ReadOnlyMemory;
 mod OrderedDictionary;
+pub use num;

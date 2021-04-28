@@ -1,60 +1,79 @@
-using System;
-using System.Diagnostics;
-using System.Numerics;
-using System.Runtime.CompilerServices;
+use crate::Types::PrimitiveType::PrimitiveType;
+use crate::Types::StackItem::StackItem;
+use crate::Types::StackItemType::StackItemType;
+use num::BigInt;
+use std::intrinsics::size_of;
+use core::mem;
 
-namespace Neo.VM.Types
-{
-    /// <summary>
-    /// Represents a boolean (<see langword="true" /> or <see langword="false" />) value in the VM.
-    /// </summary>
-    [DebuggerDisplay("Type={GetType().Name}, Value={value}")]
-    public class Boolean : PrimitiveType
-    {
-        private static readonly ReadOnlyMemory<byte> TRUE = new byte[] { 1 };
-        private static readonly ReadOnlyMemory<byte> FALSE = new byte[] { 0 };
+#[derive(Debug, Clone, Default, Eq, PartialEq)]
+pub struct Boolean {
+    value: bool,
+}
 
-        private readonly bool value;
-
-        internal override ReadOnlyMemory<byte> Memory => value ? TRUE : FALSE;
-        public override int Size => sizeof(bool);
-        public override StackItemType Type => StackItemType.Boolean;
-
-        /// <summary>
-        /// Create a new VM object representing the boolean type.
-        /// </summary>
-        /// <param name="value">The initial value of the object.</param>
-        public Boolean(bool value)
-        {
-            this.value = value;
-        }
-
-        public override bool Equals(StackItem? other)
-        {
-            if (ReferenceEquals(this, other)) return true;
-            if (other is Boolean b) return value == b.value;
-            return false;
-        }
-
-        public override bool GetBoolean()
-        {
-            return value;
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(value);
-        }
-
-        public override BigInt GetInteger()
-        {
-            return value ? BigInt.One : BigInt.Zero;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Boolean(bool value)
-        {
-            return new Boolean(value);
-        }
+impl StackItem for Boolean {
+    fn Type() -> StackItemType {
+        StackItemType::Boolean
     }
+
+    fn ConvertTo(&self, typ: StackItemType) -> Self {
+        todo!()
+    }
+
+    fn Equals(&self, other: &StackItem) -> bool
+    {
+        if ReferenceEquals(this, other) { return true; }
+        if other.Type() == StackItemType::Boolean
+        { return value == b.value; }
+        false
+    }
+
+    fn GetBoolean(&self) -> bool { self.value }
+
+    fn GetInteger(&self) -> BigInt
+    {
+        return match self.value == num::Zero {
+            false => BigInt.One,
+            true => BigInt.Zero
+        };
+    }
+}
+
+impl PrimitiveType for Boolean {
+    fn Memory(&self) -> Vec<u8> {
+        let TRUE = [1u8];
+        let FALSE = [0u8];
+
+
+        Vec::from(match self.value == num::Zero {
+            false => TURE,
+            true => FALSE
+        })
+    }
+
+    fn Size(&self) -> i32 {
+        mem::size_of::<bool>() as i32
+    }
+
+    fn GetHashCode(&self) -> i32
+    {
+        return HashCode.Combine(value);
+    }
+}
+
+/// <summary>
+/// Represents a boolean (<see langword="true" /> or <see langword="false" />) value in the VM.
+/// </summary>
+// [DebuggerDisplay("Type={GetType().Name}, Value={value}")]
+impl Boolean
+{
+
+    // public override int Size => sizeof(bool);
+    // public override StackItemType Type => StackItemType.Boolean;
+
+
+    // [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    // public static implicit operator Boolean(bool value)
+    // {
+    // return new Boolean(value);
+    // }
 }
