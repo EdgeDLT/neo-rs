@@ -40,13 +40,9 @@ impl StackItem for Boolean {
 
 impl PrimitiveType for Boolean {
     fn Memory(&self) -> Vec<u8> {
-        let TRUE = [1u8];
-        let FALSE = [0u8];
-
-
         Vec::from(match self.value == num::Zero {
-            false => TURE,
-            true => FALSE
+            false => [1u8],
+            true => [0u8]
         })
     }
 
