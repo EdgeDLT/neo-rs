@@ -14,7 +14,7 @@ name = "neo"
 path = "neo/main.rs"
 
 [workspace]
-members = ["neo_core", "Wallets", "Network", "Cryptography", "SGX", "Transaction", "VM", "Persistence", "Ledger","IO","SmartContract"]
+members = ["neo_core", "Wallets", "Network", "Cryptography","SecureWallet", "Transaction", "VM", "Persistence", "Ledger","IO","SmartContract"]
 
 [dependencies]
 neo_core = { path = "./neo_core" }
