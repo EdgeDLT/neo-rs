@@ -42,7 +42,7 @@ We recommend installing Rust using [rustup](https://www.rustup.rs/). You can ins
 Down load neo-rs from the github with command:
 
 ```bash
-git clone https://github.com/Liaojinghui/neo-rs.git
+git clone --recurse-submodules https://github.com/Liaojinghui/neo-rs.git
 ```
 
 In the terminal, move into the  `neo-rs` folder and run command  `cargo build`:
