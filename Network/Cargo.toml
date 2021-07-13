@@ -19,4 +19,4 @@ jsonrpc-core = "17.0.0"
 
 json = "*"
 igd = "0.12.0"
-libp2p = "0.37.1"
+libp2p = "0.39.1"
