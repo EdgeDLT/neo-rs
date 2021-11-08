@@ -23,7 +23,7 @@ optional = true
 version = "0.1.5"
 
 [dependencies.hmac-sha256]
-version = "0.1.2"
+version = "1.0.0"
 
 [dependencies.openssl]
 version = "0.10"
