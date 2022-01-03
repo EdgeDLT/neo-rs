@@ -15,8 +15,8 @@ serde = { version = "1.0.123", default-features = false, features = ["derive"] }
 serde_json = { version = "1.0.62", default-features = false }
 url = "2.2.1"
 tokio = "1.2.0"
-jsonrpc-core = "17.0.0"
+jsonrpc-core = "18.0.0"
 
 json = "*"
 igd = "0.12.0"
-libp2p = "0.37.1"
+libp2p = "0.41.0"
