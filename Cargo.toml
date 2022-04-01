@@ -20,7 +20,7 @@ members = ["neo_core", "Wallets", "Network", "Cryptography","SecureWallet", "Tra
 neo_core = { path = "./neo_core" }
 neo_crypto = { path = "./Cryptography" }
 
-scrypt = { version = "0.8.0", default-features = false }
+scrypt = { version = "0.10.0", default-features = false }
 
 arrayvec = { version = "0.7.0" }
 base58 = { version = "0.1" }
