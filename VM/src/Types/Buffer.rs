@@ -14,7 +14,7 @@ impl StackItem for Buffer {
         StackItemType::Buffer
     }
 
-    fn ConvertTo(&self, typ: StackItemType) -> Self {
+    fn convertTo(&self, typ: StackItemType) -> Self {
         match typ {
             StackItemType::Integer => {
                 if self.InnerBuffer.len() > Integer.MaxSize { panic!() }
@@ -47,7 +47,7 @@ impl Buffer
     /// The size of the buffer.
     /// </summary>
     // public int Size => ;
-    pub fn Size(&self) -> i32 { self.InnerBuffer.len() as i32 }
+    pub fn size(&self) -> i32 { self.InnerBuffer.len() as i32 }
 
 
     /// <summary>
@@ -61,7 +61,7 @@ impl Buffer
     // }
 
 
-    pub fn DeepCopy(&self, refMap: &HashMap<StackItem, StackItem>) -> Box<StackItem>
+    pub fn deep_copy(&self, refMap: &HashMap<StackItem, StackItem>) -> Box<StackItem>
     {
         if (refMap.TryGetValue(this, out StackItem? mappedItem))
         return mappedItem;
@@ -72,12 +72,12 @@ impl Buffer
         return result;
     }
 
-    pub fn GetBoolean(&self) -> bool
+    pub fn boolean(&self) -> bool
     {
         true
     }
 
-    pub fn GetSpan(&self) -> Vec<u8>
+    pub fn span(&self) -> Vec<u8>
     {
         self.InnerBuffer.clone()
     }

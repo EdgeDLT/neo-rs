@@ -20,7 +20,7 @@ impl StackItem for Integer {
         todo!()
     }
 
-    fn ConvertTo(&self, typ: StackItemType) -> Self {
+    fn convertTo(&self, typ: StackItemType) -> Self {
         todo!()
     }
 }

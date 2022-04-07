@@ -1,8 +1,10 @@
 use std::collections::{HashMap, HashSet};
+use crate::CompoundType::CompoundType;
+use crate::StackItem::StackItem;
 
 pub struct Entry
 {
-    StackReferences: usize,
+    StackReferences: i32,
     ObjectReferences: Option<HashMap<CompoundType, usize>>,
 }
 
@@ -15,17 +17,28 @@ pub struct ReferenceCounter {
     references_count: usize,// = 0;
 }
 
+impl Default for ReferenceCounter {
+    fn default()->Self{
+        Self{
+            counter: HashMap::default(),
+            zero_referred: HashSet::default(),
+            references_count: 0
+        }
+    }
+}
+
 /// <summary>
 /// Used for reference counting of objects in the VM.
 /// </summary>
 impl ReferenceCounter
 {
+
     /// <summary>
     /// Indicates the number of this counter.
     /// </summary>
-    pub fn Count(&self) -> usize { self.references_count }
+    pub fn count(&self) -> usize { self.references_count }
 
-    pub fn AddReference(&mut self, referred: &StackItem, parent: &CompoundType)
+    pub fn add_reference(&mut self, referred: &StackItem, parent: &CompoundType)
     {
         self.references_count += 1;
 
@@ -49,30 +62,30 @@ impl ReferenceCounter
         tracing.unwrap().ObjectReferences.unwrap()[parent] = count;
     }
 
-    pub fn AddReferences(&mut self, count: usize)
+    pub fn add_references(&mut self, count: usize)
     {
         self.references_count += count;
     }
 
-    pub fn AddStackReference(&mut self, referred: &StackItem)
+    pub fn add_stack_reference(&mut self, referred: Box<dyn StackItem>)
     {
         self.references_count += 1;
 
-        let mut entry = self.counter.get(referred);//, out Entry? entry)
+        let mut entry = self.counter.get(referred);
         if entry.is_some()
         {
             entry.unwrap().StackReferences.unwrap() += 1;
-        } else { counter.Add(referred, Entry { StackReferences: 1, ObjectReferences: None }); }
+        } else { self.counter.Add(referred, Entry { StackReferences: 1, ObjectReferences: None }); }
 
-        zero_referred.Remove(referred);
+        self.zero_referred.Remove(referred);
     }
 
-    pub fn AddZeroReferred(&mut self, item: CompoundType)
+    pub fn add_zero_referred(&mut self, item: CompoundType)
     {
         self.zero_referred.Add(item);
     }
 
-    pub fn CheckZeroReferred(&mut self) -> usize
+    pub fn check_zero_referred(&mut self) -> usize
     {
         while self.zero_referred.len() > 0
         {
@@ -84,8 +97,7 @@ impl ReferenceCounter
                 toBeChecked.Enqueue(compound);
                 while toBeChecked.Count > 0
                 {
-                    CompoundType
-                    c = toBeChecked.Dequeue();
+                    let c = toBeChecked.Dequeue();
                     let mut entry = self.counter.get(c);
                     if entry?.StackReferences > 0
                     {
@@ -101,33 +113,30 @@ impl ReferenceCounter
                         toBeChecked.Enqueue(pair.Key);
                     }
                 }
-                if (toBeDestroyedInLoop.Count > 0)
+                if toBeDestroyedInLoop.Count > 0
                 { toBeDestroyed.UnionWith(toBeDestroyedInLoop); }
             }
 
             self.zero_referred.clear();
 
-            for (compound in toBeDestroyed)
+            for compound in toBeDestroyed.iter()
             {
                 counter.Remove(compound);
                 references_count -= compound.SubItemsCount;
-                for (subitem in compound.SubItems.OfType < CompoundType > ())
+                for subitem in compound.SubItems.OfType<CompoundType>().iter()
                 {
-                    if (toBeDestroyed.Contains(subitem))
-                    continue;
-                    Entry
-                    entry = counter[subitem];
-                    entry.ObjectReferences
-                    !.Remove(compound);
-                    if (entry.StackReferences == 0)
-                    zero_referred.Add(subitem);
+                    if toBeDestroyed.Contains(subitem) continue;
+                    let entry = counter[subitem];
+                    entry.ObjectReferences!.Remove(compound);
+                    if entry.StackReferences == 0
+                        self.zero_referred.Add(subitem);
                 }
             }
         }
         return references_count;
     }
 
-    pub fn RemoveReference(&mut self, referred: &StackItem, parent: &CompoundType)
+    pub fn remove_reference(&mut self, referred: &StackItem, parent: &CompoundType)
     {
         self.references_count = self.references_count - 1;
 
@@ -137,12 +146,11 @@ impl ReferenceCounter
         { self.zero_referred.insert(referred); }
     }
 
-    pub fn RemoveStackReference(&mut self, referred: &StackItem)
+    pub fn remove_stack_reference(&mut self, referred: &StackItem)
     {
         self.references_count -= 1;
         let mut re = self.counter.get(referred).unwrap().StackReferences;
         re -= 1;
-        if re == 0
-        { self.zero_referred.insert(referred) }
+        if re == 0 { self.zero_referred.insert(referred) }
     }
 }

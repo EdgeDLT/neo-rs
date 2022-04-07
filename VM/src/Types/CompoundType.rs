@@ -6,7 +6,7 @@ use std::slice::Iter;
 
 pub trait CompoundType: StackItem
 {
-    fn ReferenceCounter(&self) -> Option<ReferenceCounter> { None }
+    fn reference_counter(&self) -> Option<ReferenceCounter> { None }
     /// <summary>
     /// Create a new <see cref="CompoundType"/> with the specified reference counter.
     /// </summary>
@@ -16,30 +16,34 @@ pub trait CompoundType: StackItem
     // this.ReferenceCounter = referenceCounter;
     // referenceCounter ?.AddZeroReferred(this);
     // }
+    fn New(referenceCounter: Option<ReferenceCounter>)->Self{
+        // this.ReferenceCounter = referenceCounter;
+        // referenceCounter ?.AddZeroReferred(this);
+    }
 
     /// <summary>
     /// The number of items in this VM object.
     /// </summary>
-    fn Count(&self) -> i32;
+    fn count(&self) -> i32;
 
-    fn At(&self, index: i32) -> &StackItem;
+    fn at(&self, index: i32) -> &StackItem;
 
-    fn Set(&mut self, index: i32, value: &StackItem);
+    fn set(&mut self, index: i32, value: &StackItem);
 
-    fn SubItems(&self) -> Iter<'_, dyn StackItem>;
+    fn sub_items(&self) -> Iter<'_, dyn StackItem>;
 
-    fn SubItemsCount(&self) -> i32;
+    fn sub_items_count(&self) -> i32;
 
-    fn Clear(&self);
+    fn clear(&self);
 
-    fn DeepCopy(&self, refMap: &HashMap<StackItem, StackItem>) -> StackItem;
+    fn deep_copy(&self, refMap: &HashMap<StackItem, StackItem>) -> StackItem;
 
-    fn GetBoolean(&self) -> bool { true }
+    fn boolean(&self) -> bool { true }
 
 
     /// <summary>
     /// The operation is not supported. Always throw <see cref="NotSupportedException"/>.
     /// </summary>
     /// <exception cref="NotSupportedException">This method always throws the exception.</exception>
-    fn GetHashCode(&self) -> i32 { panic!() }
+    fn hash_code(&self) -> i32 { panic!() }
 }

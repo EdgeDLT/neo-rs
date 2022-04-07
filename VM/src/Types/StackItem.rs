@@ -1,18 +1,9 @@
-// #pragma warning disable CS0659
-// 
-// using System;
-// using System.Collections.Generic;
-// using System.Numerics;
-// using System.Runtime.CompilerServices;
-
 use crate::Types::StackItemType::StackItemType;
 use std::any::Any;
 use std::error::Error;
 use crate::Types::StackItemType::StackItemType::InteropInterface;
 use num::BigInt;
 
-// namespace Neo.VM.Types
-// {
 /// <summary>
 /// The base class for all types in the VM.
 /// </summary>
@@ -20,61 +11,60 @@ pub trait StackItem
 {
     fn False() -> bool { false }
 
-    fn IsNull() -> bool { false }
+    fn is_null() -> bool { false }
 
     fn True() -> bool { true }
 
     fn Type() -> StackItemType;
 
-    fn ConvertTo(&self, typ: StackItemType) -> Self;
+    fn convertTo(&self, typ: StackItemType) -> Self;
 
-    fn DeepCopy(&self) -> &Self
+    fn deep_copy(&self) -> &Self
     {
         self.clone()
     }
 
-    fn Equals(&self, other: &StackItem) -> bool
+    fn equals(&self, other: &StackItem) -> bool
     {
         self == other
     }
 
-    fn FromInterface(&self, value: Option<dyn Any>) -> Result<StackItem, Error>
+    fn from_interface(&self, value: Option<dyn Any>) -> Result<StackItem, Error>
     {
         if value.is_none() { return Err(()); }
-
         InteropInterface::new(value)
     }
 
-    fn GetBoolean(&self) -> bool { false }
+    fn boolean(&self) -> bool { false }
 
-    fn GetInteger(&self) -> BigInt { panic!() }
+    fn integer(&self) -> BigInt { panic!() }
 
-    fn GetInterface<T>(&self) -> T
+    fn interface<T>(&self) -> T
         where T: Self
     {
         panic!()
     }
 
-    fn GetSpan(&self) -> ReadOnlySpan<u8>
+    fn span(&self) -> ReadOnlySpan<u8>
     {
         panic!();
     }
 
-    fn GetString(&self) -> String
+    fn string(&self) -> String
     {
         return Utility.StrictUTF8.GetString(GetSpan());
     }
 
 
-// fn static implicit operator StackItem(sbyte value)
+    // fn  from_sbyte(value:sbyte)-> Box<Self>
+    // {
+    //     Self{value}
+    // }
+
+
+// fn from_byte(value:byte)-> Box<Self>
 // {
-// return (Integer)value;
-// }
-//
-//
-// fn static implicit operator StackItem(byte value)
-// {
-// return (Integer)value;
+//     Self{value}
 // }
 //
 //

@@ -1,25 +1,28 @@
+extern crate core;
+
 use self::Types::*;
+extern crate alloc;
 
-mod OpCode;
-mod VMState;
-mod Debugger;
+pub mod OpCode;
+pub mod VMState;
+// pub mod Debugger;
 
-mod Types;
-mod Instruction;
-mod Script;
-mod ExecutionEngineLimits;
-mod ExecutionEngine;
-mod ExecutionContext;
-mod ExceptionHandlingState;
-mod ExceptionHandlingContext;
-mod EvaluationStack;
-mod BadScriptException;
-mod OperandSizeAttribute;
-mod ReferenceCounter;
-mod Slot;
-mod ScriptBuilder;
-mod Unsafe;
+pub mod Types;
+pub mod Instruction;
+pub mod Script;
+pub mod ExecutionEngineLimits;
+pub mod ExecutionEngine;
+pub mod ExecutionContext;
+pub mod ExceptionHandlingState;
+pub mod ExceptionHandlingContext;
+pub mod EvaluationStack;
+pub mod BadScriptException;
+pub mod ReferenceCounter;
+pub mod Slot;
+pub mod ScriptBuilder;
+pub mod Unsafe;
 mod VMUnhandledException;
+mod Macros;
 
 #[cfg(test)]
 mod tests {

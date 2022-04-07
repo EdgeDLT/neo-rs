@@ -19,7 +19,7 @@ impl StackItem for Boolean {
         todo!()
     }
 
-    fn Equals(&self, other: &StackItem) -> bool
+    fn equals(&self, other: &StackItem) -> bool
     {
         if ReferenceEquals(this, other) { return true; }
         if other.Type() == StackItemType::Boolean
