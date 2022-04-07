@@ -1,3 +1,4 @@
+use core::panicking::panic;
 use std::ptr::null;
 
 use crate::EvaluationStack::EvaluationStack;
@@ -9,44 +10,58 @@ use crate::Script::Script;
 use crate::VMState::VMState;
 use crate::ExceptionHandlingContext::ExceptionHandlingContext;
 use std::collections::VecDeque;
+use num::BigInt;
+use crate::Pointer::Pointer;
+use crate::StackItem::StackItem;
+use getset::{CopyGetters, Getters, MutGetters, Setters};
+use crate::Slot::Slot;
 
+#[derive(Getters, Setters, MutGetters, CopyGetters, Default)]
 pub struct ExecutionEngine {
     state: VMState,
     // = VMState.BREAK;
-    isJumping: bool,// = false;
+    #[getset(get="pub", set)]
+    is_jumping: bool,// = false;
 
     /// <summary>
     /// Restrictions on the VM.
     /// </summary>
-    Limits: ExecutionEngineLimits, //{get; }
+    #[getset(get_mut = "pub", get="pub", set)]
+    limits: ExecutionEngineLimits, //{get; }
 
     /// <summary>
     /// Used for reference counting of objects in the VM.
     /// </summary>
-    ReferenceCounter: ReferenceCounter,// { get; }
+    #[getset(get_mut = "pub", get="pub", set)]
+    reference_counter: ReferenceCounter,// { get; }
 
     /// <summary>
     /// The invocation stack of the VM.
     /// </summary>
-    InvocationStack: VecDeque<ExecutionContext>,
+    #[getset(get_mut = "pub", get="pub", set)]
+    invocation_stack: VecDeque<ExecutionContext>,
 
     /// <summary>
     /// The top frame of the invocation stack.
     /// </summary>
-    CurrentContext: Option<ExecutionContext>,
+    #[getset(get_mut = "pub", get="pub", set)]
+    current_context: Option<ExecutionContext>,
     /// <summary>
     /// The bottom frame of the invocation stack.
     /// </summary>
-    EntryContext: Option<ExecutionContext>,
+    #[getset(get_mut = "pub", get="pub", set)]
+    entry_context: Option<ExecutionContext>,
     /// <summary>
     /// The stack to store the return values.
     /// </summary>
-    ResultStack: EvaluationStack,
+    #[getset(get_mut = "pub", get="pub", set)]
+    result_stack: EvaluationStack,
 
     /// <summary>
     /// The VM object representing the uncaught exception.
     /// </summary>
-    UncaughtException: Option<StackItem>,// { get; private set; }
+    #[getset(get_mut = "pub", get="pub", set)]
+    uncaught_exception: Option<StackItem>,// { get; private set; }
 }
 
 impl ExecutionEngine {
@@ -58,67 +73,6 @@ impl ExecutionEngine {
         }
     }
 
-    pub fn set_isJumping(&mut self, isJumping: bool) {
-        self.isJumping = isJumping;
-    }
-
-    pub fn set_Limits(&mut self, Limits: _) {
-        self.Limits = Limits;
-    }
-
-    pub fn set_ReferenceCounter(&mut self, ReferenceCounter: _) {
-        self.ReferenceCounter = ReferenceCounter;
-    }
-
-    pub fn set_InvocationStack(&mut self, InvocationStack: _) {
-        self.InvocationStack = InvocationStack;
-    }
-
-    pub fn set_CurrentContext(&mut self, CurrentContext: Option<_>) {
-        self.CurrentContext = CurrentContext;
-    }
-
-    pub fn set_EntryContext(&mut self, EntryContext: Option<_>) {
-        self.EntryContext = EntryContext;
-    }
-
-    pub fn set_ResultStack(&mut self, ResultStack: _) {
-        self.ResultStack = ResultStack;
-    }
-
-    pub fn state(&self) -> &VMState {
-        &self.state
-    }
-    pub fn isJumping(&self) -> bool {
-        self.isJumping
-    }
-    pub fn Limits(&self) -> _ {
-        self.Limits
-    }
-    pub fn ReferenceCounter(&self) -> _ {
-        self.ReferenceCounter
-    }
-    pub fn InvocationStack(&self) -> _ {
-        self.InvocationStack
-    }
-    pub fn CurrentContext(&self) -> &Option<_> {
-        &self.CurrentContext
-    }
-    pub fn EntryContext(&self) -> &Option<_> {
-        &self.EntryContext
-    }
-    pub fn ResultStack(&self) -> _ {
-        self.ResultStack
-    }
-}
-
-// namespace Neo.VM
-// {
-/// <summary>
-/// Represents the VM used to execute the script.
-/// </summary>
-impl ExecutionEngine
-{
     /// <summary>
     /// Initializes a new instance of the <see cref="ExecutionEngine"/> class.
     /// </summary>
@@ -142,52 +96,52 @@ impl ExecutionEngine
     /// Called when a context is unloaded.
     /// </summary>
     /// <param name="context">The context being unloaded.</param>
-    pub fn ContextUnloaded(context: ExecutionContext)
+    pub fn context_unloaded(&mut self, context: &mut ExecutionContext)
     {
-        if (InvocationStack.Count == 0)
+        if self.invocation_stack().Count == 0
         {
-            CurrentContext = null;
-            EntryContext = null;
+            self.current_context = None;
+            self.entry_context = None;
         } else {
-            CurrentContext = InvocationStack.Peek();
+            self.current_context = self.invocation_stack_mut().Peek();
         }
-        if context.StaticFields != null && context.StaticFields != CurrentContext?.StaticFields
+        if context.static_fields().is_some() && context.static_fields() != self.current_context?.static_fields()
         {
-            context.StaticFields.ClearReferences();
+            context.static_fields_mut().ClearReferences();
         }
-        context.LocalVariables?.ClearReferences();
+        context.local_variables()?.ClearReferences();
         context.Arguments?.ClearReferences();
     }
 
-    pub fn Dispose(&self)
+    pub fn dispose(&mut self)
     {
-        self.InvocationStack.Clear();
+        self.invocation_stack.clear();
     }
 
     /// <summary>
     /// Start execution of the VM.
     /// </summary>
     /// <returns></returns>
-    pub fn Execute() -> VMState
+    pub fn execute(&mut self) -> VMState
     {
-        if State == VMState.BREAK
-        { State = VMState.NONE; }
+        if self.state == VMState::BREAK
+        { self.state = VMState::NONE; }
 
-        while State != VMState.HALT && State != VMState.FAULT {
-            ExecuteNext();
+        while self.state != VMState::HALT && self.state != VMState::FAULT {
+            self.execute_next();
         }
-        return State;
+        self.state.clone()
     }
 
     // [MethodImpl(MethodImplOptions.AggressiveInlining)]
     fn ExecuteCall(&mut self, position: usize)
     {
-        self::LoadContext(self.CurrentContext.unwrap().Clone(position));
+        self::LoadContext(self.current_context.unwrap().Clone(position));
     }
 
     fn ExecuteInstruction(&mut self)
     {
-        let mut instruction = self.CurrentContext.unwrap().CurrentInstruction();
+        let mut instruction = self.current_context.unwrap().CurrentInstruction();
 
         match instruction.OpCode {
             OpCode::PUSHINT8 |
@@ -196,15 +150,12 @@ impl ExecutionEngine
             OpCode::PUSHINT64 |
             OpCode::PUSHINT128 |
             OpCode::PUSHINT256 => {
-                Push(BigInt(instruction.Operand.Span));
+                self.Push(BigInt(instruction.Operand.Span));
             }
             OpCode::PUSHA => {
-                let mut position: usize = checked(CurrentContext.InstructionPointer + instruction.TokenI32());
-                if position < 0 || position > self.CurrentContext.unwrap().Script.Length() { panic!(); }
-                // throw
-                // new
-                // InvalidOperationException($ "Bad pointer address: {position}");
-                Push(new Pointer(CurrentContext.Script, position));
+                let mut position: usize = checked(self.current_context?.instruction_pointer() + instruction.token_i32());
+                if position < 0 || position > self.current_context.unwrap().Script.Length() { panic!(); }
+                Push(Pointer(CurrentContext.Script, position));
             }
             OpCode::PUSHNULL =>
                 {
@@ -234,126 +185,126 @@ impl ExecutionEngine
             OpCode::PUSH14 |
             OpCode::PUSH15 |
             OpCode::PUSH16 => {
-                Push((int)instruction.OpCode - (int)OpCode.PUSH0);
+                Push((int)instruction.opcode - OpCode::PUSH0.0);
             }
             OpCode::NOP => break,
             OpCode::JMP =>
                 {
-                    ExecuteJumpOffset(instruction.TokenI8());
+                    ExecuteJumpOffset(instruction.token_i8());
                 }
             OpCode::JMP_L =>
                 {
-                    ExecuteJumpOffset(instruction.TokenI32());
+                    ExecuteJumpOffset(instruction.token_i32());
                 }
             OpCode::JMPIF =>
                 {
-                    if (Pop().GetBoolean())
-                    { ExecuteJumpOffset(instruction.TokenI8()); }
+                    if Pop().boolean()
+                    { ExecuteJumpOffset(instruction.token_i8()); }
                 }
             OpCode::JMPIF_L =>
                 {
-                    if (Pop().GetBoolean())
-                    { ExecuteJumpOffset(instruction.TokenI32()); }
+                    if Pop().boolean()
+                    { ExecuteJumpOffset(instruction.token_i32()); }
                 }
             OpCode::JMPIFNOT =>
                 {
-                    if (!Pop().GetBoolean()) {
-                        ExecuteJumpOffset(instruction.TokenI8());
+                    if (!Pop().boolean()) {
+                        ExecuteJumpOffset(instruction.token_i8());
                     }
                 }
             OpCode::JMPIFNOT_L =>
                 {
-                    if (!Pop().GetBoolean()) {
-                        ExecuteJumpOffset(instruction.TokenI32());
+                    if (!Pop().boolean()) {
+                        ExecuteJumpOffset(instruction.token_i32());
                     }
                 }
             OpCode::JMPEQ =>
                 {
-                    let x2 = Pop().GetInteger();
-                    let x1 = Pop().GetInteger();
+                    let x2 = Pop().integer();
+                    let x1 = Pop().integer();
                     if x1 == x2 {
-                        ExecuteJumpOffset(instruction.TokenI8());
+                        ExecuteJumpOffset(instruction.token_i8());
                     }
                 }
             OpCode::JMPEQ_L =>
                 {
-                    let x2 = Pop().GetInteger();
-                    let x1 = Pop().GetInteger();
+                    let x2 = Pop().integer();
+                    let x1 = Pop().integer();
                     if x1 == x2 {
-                        ExecuteJumpOffset(instruction.TokenI32());
+                        ExecuteJumpOffset(instruction.token_i32());
                     }
                 }
             OpCode::JMPNE =>
                 {
-                    let x2 = Pop().GetInteger();
-                    let x1 = Pop().GetInteger();
+                    let x2 = Pop().integer();
+                    let x1 = Pop().integer();
                     if x1 != x2 {
-                        ExecuteJumpOffset(instruction.TokenI8());
+                        ExecuteJumpOffset(instruction.token_i8());
                     }
                 }
             OpCode::JMPNE_L =>
                 {
-                    let x2 = Pop().GetInteger();
-                    let x1 = Pop().GetInteger();
-                    if x1 != x2 { ExecuteJumpOffset(instruction.TokenI32()); }
+                    let x2 = Pop().integer();
+                    let x1 = Pop().integer();
+                    if x1 != x2 { ExecuteJumpOffset(instruction.token_i32()); }
                 }
             OpCode::JMPGT =>
                 {
-                    let x2 = Pop().GetInteger();
-                    let x1 = Pop().GetInteger();
-                    if (x1 > x2) { ExecuteJumpOffset(instruction.TokenI8()); }
+                    let x2 = Pop().integer();
+                    let x1 = Pop().integer();
+                    if (x1 > x2) { ExecuteJumpOffset(instruction.token_i8()); }
                 }
             OpCode::JMPGT_L =>
                 {
-                    let x2 = Pop().GetInteger();
-                    let x1 = Pop().GetInteger();
-                    if x1 > x2 { ExecuteJumpOffset(instruction.TokenI32()); }
+                    let x2 = Pop().integer();
+                    let x1 = Pop().integer();
+                    if x1 > x2 { ExecuteJumpOffset(instruction.token_i32()); }
                 }
             OpCode::JMPGE =>
                 {
-                    let x2 = Pop().GetInteger();
-                    let x1 = Pop().GetInteger();
-                    if x1 >= x2 { ExecuteJumpOffset(instruction.TokenI8()); }
+                    let x2 = Pop().integer();
+                    let x1 = Pop().integer();
+                    if x1 >= x2 { ExecuteJumpOffset(instruction.token_i8()); }
                 }
             OpCode::JMPGE_L =>
                 {
-                    let x2 = Pop().GetInteger();
-                    let x1 = Pop().GetInteger();
-                    if x1 >= x2 { ExecuteJumpOffset(instruction.TokenI32()); }
+                    let x2 = Pop().integer();
+                    let x1 = Pop().integer();
+                    if x1 >= x2 { ExecuteJumpOffset(instruction.token_i32()); }
                 }
             OpCode::JMPLT =>
                 {
-                    let x2 = Pop().GetInteger();
-                    let x1 = Pop().GetInteger();
-                    if x1 < x2 { ExecuteJumpOffset(instruction.TokenI8()); }
+                    let x2 = Pop().integer();
+                    let x1 = Pop().integer();
+                    if x1 < x2 { ExecuteJumpOffset(instruction.token_i8()); }
                 }
             OpCode::JMPLT_L =>
                 {
-                    let x2 = Pop().GetInteger();
-                    let x1 = Pop().GetInteger();
-                    if x1 < x2 { ExecuteJumpOffset(instruction.TokenI32()); }
+                    let x2 = Pop().integer();
+                    let x1 = Pop().integer();
+                    if x1 < x2 { ExecuteJumpOffset(instruction.token_i32()); }
                 }
             OpCode::JMPLE =>
                 {
-                    let x2 = Pop().GetInteger() as i32;
-                    let x1 = Pop().GetInteger() as i32;
+                    let x2 = Pop().integer() as i32;
+                    let x1 = Pop().integer() as i32;
                     if x1 <= x2 {
-                        ExecuteJumpOffset(instruction.TokenI8());
+                        ExecuteJumpOffset(instruction.token_i8());
                     }
                 }
             OpCode::JMPLE_L =>
                 {
-                    let x2 = Pop().GetInteger() as i32;
-                    let x1 = Pop().GetInteger() as i32;
-                    if x1 <= x2 { ExecuteJumpOffset(instruction.TokenI32()); }
+                    let x2 = Pop().integer() as i32;
+                    let x1 = Pop().integer() as i32;
+                    if x1 <= x2 { ExecuteJumpOffset(instruction.token_i32()); }
                 }
             OpCode::CALL =>
                 {
-                    ExecuteCall(checked(CurrentContext.InstructionPointer + instruction.TokenI8()));
+                    ExecuteCall(checked(CurrentContext.InstructionPointer + instruction.token_i8()));
                 }
             OpCode::CALL_L =>
                 {
-                    ExecuteCall(checked(CurrentContext.InstructionPointer + instruction.TokenI32()));
+                    ExecuteCall(checked(CurrentContext.InstructionPointer + instruction.token_i32()));
                 }
             OpCode::CALLA =>
                 {
@@ -371,63 +322,57 @@ impl ExecutionEngine
             OpCode::ABORT =>
                 {
                     panic!();
-                    // throw
-                    // new
-                    // Exception($ "{OpCode.ABORT} is executed.");
                 }
             OpCode::ASSERT =>
                 {
-                    let x = Pop().GetBoolean() as bool;
+                    let x = Pop().boolean() as bool;
                     if !x { panic!(); }
-                    // throw
-                    // new
-                    // Exception($ "{OpCode.ASSERT} is executed with false result.");
                 }
             OpCode::THROW =>
                 {
-                    ExecuteThrow(Pop());
+                    self.execute_throw(Pop());
                 }
             OpCode::TRY =>
                 {
-                    let catchOffset = instruction.TokenI8() as i32;
-                    let finallyOffset = instruction.TokenI8_1 as i32;
+                    let catchOffset = instruction.token_i8() as i32;
+                    let finallyOffset = instruction.token_i8_1 as i32;
                     ExecuteTry(catchOffset, finallyOffset);
                 }
             OpCode::TRY_L =>
                 {
-                    let catchOffset = instruction.TokenI32() as i32;
-                    let finallyOffset = instruction.TokenI32_1 as i32;
+                    let catchOffset = instruction.token_i32() as i32;
+                    let finallyOffset = instruction.token_i32_1() as i32;
                     ExecuteTry(catchOffset, finallyOffset);
                 }
             OpCode::ENDTRY =>
                 {
-                    let endOffset = instruction.TokenI8() as i32;
+                    let endOffset = instruction.token_i8() as i32;
                     ExecuteEndTry(endOffset);
                 }
             OpCode::ENDTRY_L =>
                 {
-                    let endOffset = instruction.TokenI32() as i32;
+                    let endOffset = instruction.token_i32() as i32;
                     ExecuteEndTry(endOffset);
                 }
             OpCode::ENDFINALLY =>
                 {
-                    if self.CurrentContext.unwrap().TryStack().is_none() { panic!(); }
+                    if self.current_context.unwrap().try_stack().is_none() { panic!(); }
 
                     // throw
                     // new
                     // InvalidOperationException($ "The corresponding TRY block cannot be found.");
-                    if (!CurrentContext.TryStack.TryPop(out ExceptionHandlingContext? currentTry)) { panic!(); }
+                    if (!self.current_context.try_stack.TryPop(out ExceptionHandlingContext? currentTry)) { panic!(); }
                     // throw
                     // new
                     // InvalidOperationException($ "The corresponding TRY block cannot be found.");
 
-                    if (self.UncaughtException.is_none()) {
+                    if self.uncaught_exception.is_none() {
                         CurrentContext.InstructionPointer = currentTry.EndPointer;
                     } else {
                         HandleException();
                     }
 
-                    self.isJumping = true;
+                    self.is_jumping = true;
                 }
             OpCode::RET =>
                 {
@@ -438,16 +383,16 @@ impl ExecutionEngine
                     ResultStack => InvocationStack.Peek().EvaluationStack;
                     if (context_pop.EvaluationStack != stack_eval)
                     {
-                        if (context_pop.RVCount > = 0 & &context_pop.EvaluationStack.Count != context_pop.RVCount)
-                        throw
-                        new
-                        InvalidOperationException("RVCount doesn't match with EvaluationStack");
+                        if context_pop.RVCount > = 0 & &context_pop.EvaluationStack.Count != context_pop.RVCount
+                        {
+                            panic!();
+                        }
                         context_pop.EvaluationStack.CopyTo(stack_eval);
                     }
                     if (InvocationStack.Count == 0)
                     State = VMState.HALT;
                     ContextUnloaded(context_pop);
-                    self.isJumping = true;
+                    self.is_jumping = true;
                 }
             OpCode::SYSCALL =>
                 {
@@ -471,7 +416,7 @@ impl ExecutionEngine
                 {
                     int
                     n = (int)
-                    Pop().GetInteger();
+                    Pop().integer();
                     if (n < 0)
                     throw
                     new
@@ -494,7 +439,7 @@ impl ExecutionEngine
                 {
                     int
                     n = (int)
-                    Pop().GetInteger();
+                    Pop().integer();
                     if (n < 0)
                     throw
                     new
@@ -519,7 +464,7 @@ impl ExecutionEngine
                 {
                     int
                     n = (int)
-                    Pop().GetInteger();
+                    Pop().integer();
                     if (n < 0)
                     throw
                     new
@@ -541,7 +486,7 @@ impl ExecutionEngine
                 {
                     int
                     n = (int)
-                    Pop().GetInteger();
+                    Pop().integer();
                     CurrentContext.EvaluationStack.Reverse(n);
                 }
 
@@ -679,18 +624,18 @@ impl ExecutionEngine
                 {
                     int
                     length = (int)
-                    Pop().GetInteger();
+                    Pop().integer();
                     Limits.AssertMaxItemSize(length);
                     Push(new Buffer(length));
                 }
             OpCode::MEMCPY =>
                 {
-                    let count = Pop().GetInteger() as i32;
+                    let count = Pop().integer() as i32;
                     if count < 0 { panic!(); }
                     // throw
                     // new
                     // InvalidOperationException($ "The value {count} is out of range.");
-                    let si = Pop().GetInteger() as i32;
+                    let si = Pop().integer() as i32;
                     if si < 0 { panic!(); }
                     // throw
                     // new
@@ -700,7 +645,7 @@ impl ExecutionEngine
                     // throw
                     // new
                     // InvalidOperationException($ "The value {count} is out of range.");
-                    let di = Pop().GetInteger() as i32;
+                    let di = Pop().integer() as i32;
                     if di < 0 { panic!(); }
                     // throw
                     // new
@@ -727,12 +672,12 @@ impl ExecutionEngine
                 }
             OpCode::SUBSTR =>
                 {
-                    let count = Pop().GetInteger() as i32;
+                    let count = Pop().integer() as i32;
                     if count < 0 { panic!(); }
                     // throw
                     // new
                     // InvalidOperationException($ "The value {count} is out of range.");
-                    let index = Pop().GetInteger() as i32;
+                    let index = Pop().integer() as i32;
                     if index < 0 { panic!(); }
                     // throw
                     // new
@@ -749,7 +694,7 @@ impl ExecutionEngine
                 }
             OpCode::LEFT =>
                 {
-                    let count = Pop().GetInteger() as usize;
+                    let count = Pop().integer() as usize;
                     if count < 0 { panic!(); }
                     // throw
                     // new
@@ -766,7 +711,7 @@ impl ExecutionEngine
                 }
             OpCode::RIGHT =>
                 {
-                    let count = Pop().GetInteger() as i32;
+                    let count = Pop().integer() as i32;
                     if count < 0 { panic!(); }
                     // throw
                     // new
@@ -785,31 +730,31 @@ impl ExecutionEngine
             // Bitwise logic
             OpCode::INVERT =>
                 {
-                    let x = Pop().GetInteger();
+                    let x = Pop().integer();
                     Push(~x);
                 }
             OpCode::AND =>
                 {
                     let
-                        x2 = Pop().GetInteger();
+                        x2 = Pop().integer();
                     let
-                        x1 = Pop().GetInteger();
+                        x1 = Pop().integer();
                     Push(x1 & x2);
                 }
             OpCode::OR =>
                 {
                     let
-                        x2 = Pop().GetInteger();
+                        x2 = Pop().integer();
                     let
-                        x1 = Pop().GetInteger();
+                        x1 = Pop().integer();
                     Push(x1 | x2);
                 }
             OpCode::XOR =>
                 {
                     let
-                        x2 = Pop().GetInteger();
+                        x2 = Pop().integer();
                     let
-                        x1 = Pop().GetInteger();
+                        x1 = Pop().integer();
                     Push(x1 ^ x2);
                 }
             OpCode::EQUAL =>
@@ -833,152 +778,152 @@ impl ExecutionEngine
             OpCode::SIGN =>
                 {
                     let
-                        x = Pop().GetInteger();
+                        x = Pop().integer();
                     Push(x.Sign);
                 }
             OpCode::ABS =>
                 {
                     let
-                        x = Pop().GetInteger();
+                        x = Pop().integer();
                     Push(BigInt.Abs(x));
                 }
             OpCode::NEGATE =>
                 {
                     let
-                        x = Pop().GetInteger();
+                        x = Pop().integer();
                     Push(-x);
                 }
             OpCode::INC =>
                 {
                     let
-                        x = Pop().GetInteger();
+                        x = Pop().integer();
                     Push(x + 1);
                 }
             OpCode::DEC =>
                 {
                     let
-                        x = Pop().GetInteger();
+                        x = Pop().integer();
                     Push(x - 1);
                 }
             OpCode::ADD =>
                 {
                     let
-                        x2 = Pop().GetInteger();
+                        x2 = Pop().integer();
                     let
-                        x1 = Pop().GetInteger();
+                        x1 = Pop().integer();
                     Push(x1 + x2);
                 }
             OpCode::SUB =>
                 {
                     let
-                        x2 = Pop().GetInteger();
+                        x2 = Pop().integer();
                     let
-                        x1 = Pop().GetInteger();
+                        x1 = Pop().integer();
                     Push(x1 - x2);
                 }
             OpCode::MUL =>
                 {
                     let
-                        x2 = Pop().GetInteger();
+                        x2 = Pop().integer();
                     let
-                        x1 = Pop().GetInteger();
+                        x1 = Pop().integer();
                     Push(x1 * x2);
                 }
             OpCode::DIV =>
                 {
                     let
-                        x2 = Pop().GetInteger();
+                        x2 = Pop().integer();
                     let
-                        x1 = Pop().GetInteger();
+                        x1 = Pop().integer();
                     Push(x1 / x2);
                 }
             OpCode::MOD =>
                 {
                     let
-                        x2 = Pop().GetInteger();
+                        x2 = Pop().integer();
                     let
-                        x1 = Pop().GetInteger();
+                        x1 = Pop().integer();
                     Push(x1 % x2);
                 }
             OpCode::POW =>
                 {
                     let
                         exponent = (int)
-                    Pop().GetInteger();
+                    Pop().integer();
                     let
-                        value = Pop().GetInteger();
+                        value = Pop().integer();
                     Push(BigInt.Pow(value, exponent));
                 }
             OpCode::SQRT =>
                 {
-                    Push(Pop().GetInteger().Sqrt());
+                    Push(Pop().integer().Sqrt());
                 }
             OpCode::SHL =>
                 {
                     int
                     shift = (int)
-                    Pop().GetInteger();
+                    Pop().integer();
                     Limits.AssertShift(shift);
                     if (shift == 0)
 
                     let
-                        x = Pop().GetInteger();
+                        x = Pop().integer();
                     Push(x < < shift);
                 }
             OpCode::SHR =>
                 {
                     int
                     shift = (int)
-                    Pop().GetInteger();
+                    Pop().integer();
                     Limits.AssertShift(shift);
                     if (shift == 0)
 
                     let
-                        x = Pop().GetInteger();
+                        x = Pop().integer();
                     Push(x > > shift);
                 }
             OpCode::NOT =>
                 {
                     let
-                        x = Pop().GetBoolean();
+                        x = Pop().boolean();
                     Push(!x);
                 }
             OpCode::BOOLAND =>
                 {
                     let
-                        x2 = Pop().GetBoolean();
+                        x2 = Pop().boolean();
                     let
-                        x1 = Pop().GetBoolean();
+                        x1 = Pop().boolean();
                     Push(x1 & &x2);
                 }
             OpCode::BOOLOR =>
                 {
                     let
-                        x2 = Pop().GetBoolean();
+                        x2 = Pop().boolean();
                     let
-                        x1 = Pop().GetBoolean();
+                        x1 = Pop().boolean();
                     Push(x1 | | x2);
                 }
             OpCode::NZ =>
                 {
                     let
-                        x = Pop().GetInteger();
+                        x = Pop().integer();
                     Push(!x.IsZero);
                 }
             OpCode::NUMEQUAL =>
                 {
                     let
-                        x2 = Pop().GetInteger();
+                        x2 = Pop().integer();
                     let
-                        x1 = Pop().GetInteger();
+                        x1 = Pop().integer();
                     Push(x1 == x2);
                 }
             OpCode::NUMNOTEQUAL =>
                 {
                     let
-                        x2 = Pop().GetInteger();
+                        x2 = Pop().integer();
                     let
-                        x1 = Pop().GetInteger();
+                        x1 = Pop().integer();
                     Push(x1 != x2);
                 }
             OpCode::LT =>
@@ -990,7 +935,7 @@ impl ExecutionEngine
                     if (x1.IsNull || x2.IsNull)
                     Push(false);
                     else
-                    Push(x1.GetInteger() < x2.GetInteger());
+                    Push(x1.integer() < x2.integer());
                 }
             OpCode::LE =>
                 {
@@ -1001,7 +946,7 @@ impl ExecutionEngine
                     if (x1.IsNull || x2.IsNull)
                     Push(false);
                     else
-                    Push(x1.GetInteger() < = x2.GetInteger());
+                    Push(x1.integer() < = x2.integer());
                 }
             OpCode::GT =>
                 {
@@ -1012,7 +957,7 @@ impl ExecutionEngine
                     if (x1.IsNull || x2.IsNull)
                     Push(false);
                     else
-                    Push(x1.GetInteger() > x2.GetInteger());
+                    Push(x1.integer() > x2.integer());
                 }
             OpCode::GE =>
                 {
@@ -1023,32 +968,32 @@ impl ExecutionEngine
                     if (x1.IsNull || x2.IsNull)
                     Push(false);
                     else
-                    Push(x1.GetInteger() > = x2.GetInteger());
+                    Push(x1.integer() > = x2.integer());
                 }
             OpCode::MIN =>
                 {
                     let
-                        x2 = Pop().GetInteger();
+                        x2 = Pop().integer();
                     let
-                        x1 = Pop().GetInteger();
+                        x1 = Pop().integer();
                     Push(BigInt.Min(x1, x2));
                 }
             OpCode::MAX =>
                 {
                     let
-                        x2 = Pop().GetInteger();
+                        x2 = Pop().integer();
                     let
-                        x1 = Pop().GetInteger();
+                        x1 = Pop().integer();
                     Push(BigInt.Max(x1, x2));
                 }
             OpCode::WITHIN =>
                 {
                     BigInt
-                    b = Pop().GetInteger();
+                    b = Pop().integer();
                     BigInt
-                    a = Pop().GetInteger();
+                    a = Pop().integer();
                     let
-                        x = Pop().GetInteger();
+                        x = Pop().integer();
                     Push(a < = x && x < b);
                 }
 
@@ -1057,7 +1002,7 @@ impl ExecutionEngine
                 {
                     int
                     size = (int)
-                    Pop().GetInteger();
+                    Pop().integer();
                     if (size < 0 || size > CurrentContext.EvaluationStack.Count)
                     throw
                     new
@@ -1089,7 +1034,7 @@ impl ExecutionEngine
                 {
                     int
                     n = (int)
-                    Pop().GetInteger();
+                    Pop().integer();
                     if (n < 0 || n > Limits.MaxStackSize)
                     throw
                     new
@@ -1125,7 +1070,7 @@ impl ExecutionEngine
                 {
                     int
                     n = (int)
-                    Pop().GetInteger();
+                    Pop().integer();
                     if (n < 0 || n > Limits.MaxStackSize)
                     throw
                     new
@@ -1182,7 +1127,7 @@ impl ExecutionEngine
                         {
                             int
                             index = (int)
-                            key.GetInteger();
+                            key.integer();
                             if (index < 0)
                             throw
                             new
@@ -1203,7 +1148,7 @@ impl ExecutionEngine
                         {
                             int
                             index = (int)
-                            key.GetInteger();
+                            key.integer();
                             if (index < 0)
                             throw
                             new
@@ -1217,7 +1162,7 @@ impl ExecutionEngine
                         {
                             int
                             index = (int)
-                            key.GetInteger();
+                            key.integer();
                             if (index < 0)
                             throw
                             new
@@ -1277,7 +1222,7 @@ impl ExecutionEngine
                         {
                             int
                             index = (int)
-                            key.GetInteger();
+                            key.integer();
                             if (index < 0 | | index > = array.Count)
                             throw
                             new
@@ -1303,7 +1248,7 @@ impl ExecutionEngine
                             ReadOnlySpan < byte > byteArray = primitive.GetSpan();
                             int
                             index = (int)
-                            key.GetInteger();
+                            key.integer();
                             if (index < 0 || index > = byteArray.Length)
                             throw
                             new
@@ -1317,7 +1262,7 @@ impl ExecutionEngine
                         {
                             int
                             index = (int)
-                            key.GetInteger();
+                            key.integer();
                             if (index < 0 | | index > = buffer.Size)
                             throw
                             new
@@ -1365,7 +1310,7 @@ impl ExecutionEngine
                         {
                             int
                             index = (int)
-                            key.GetInteger();
+                            key.integer();
                             if (index < 0 | | index > = array.Count)
                             throw
                             new
@@ -1386,7 +1331,7 @@ impl ExecutionEngine
                         {
                             int
                             index = (int)
-                            key.GetInteger();
+                            key.integer();
                             if (index < 0 | | index > = buffer.Size)
                             throw
                             new
@@ -1401,7 +1346,7 @@ impl ExecutionEngine
                             InvalidOperationException($ "Value must be a primitive type in {instruction.OpCode}");
                             int
                             b = (int)
-                            p.GetInteger();
+                            p.integer();
                             if (b < sbyte.MinValue || b > byte.MaxValue)
                             throw
                             new
@@ -1451,7 +1396,7 @@ impl ExecutionEngine
                         array =>
                         int
                         index = (int)
-                        key.GetInteger();
+                        key.integer();
                         if (index < 0 | | index > = array.Count)
                         throw
                         new
@@ -1517,16 +1462,21 @@ impl ExecutionEngine
         }
     }
 
-    private void ExecuteEndTry(int endOffset)
+    fn execute_end_try(&self,endOffset:i32)
     {
-    if (CurrentContext !.TryStack is null)
-    throw new InvalidOperationException( $ "The corresponding TRY block cannot be found.");
-    if ( !CurrentContext.TryStack.TryPeek(out ExceptionHandlingContext ? currentTry))
-    throw new InvalidOperationException( $ "The corresponding TRY block cannot be found.");
-    if (currentTry.State == ExceptionHandlingState.Finally)
-    throw new InvalidOperationException( $ "The opcode {OpCode.ENDTRY} can't be executed in a FINALLY block.");
+    if self.current_context?.try_stack() {
+        panic!()
+    };
+    if !self.current_context.try_stack.TryPeek(out ExceptionHandlingContext ? currentTry) {
+        panic!();
+    }
 
-    int endPointer = checked(CurrentContext.InstructionPointer + endOffset);
+    if self.current_try.state == ExceptionHandlingState.Finally {
+        panic!();
+    }
+
+
+    let endPointer = checked(CurrentContext.InstructionPointer + endOffset);
     if (currentTry.HasFinally)
     {
     currentTry.State = ExceptionHandlingState.Finally;
@@ -1535,48 +1485,48 @@ impl ExecutionEngine
     }
     else
     {
-    CurrentContext.TryStack.Pop();
+    CurrentContext.try_stack.Pop();
     CurrentContext.InstructionPointer = endPointer;
     }
-    self.isJumping = true;
+    self.is_jumping = true;
     }
 
     /// <summary>
     /// Jump to the specified position.
     /// </summary>
     /// <param name="position">The position to jump to.</param>
-    // [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    fn ExecuteJump(&self, position: i32)
+    #[inline]
+    fn execute_jump(&mut self, position: i32)
     {
-        if position < 0 || position > CurrentContext!.Script.Length { panic!(); }
-        // throw new ArgumentOutOfRangeException($ "Jump out of range for position: {position}");
-        CurrentContext.InstructionPointer = position;
-        self.isJumping = true;
+        if position < 0 || position > self.current_context?.script().length() as i32 { panic!(); }
+
+        self.current_context?.InstructionPointer = position;
+        self.is_jumping = true;
     }
 
     /// <summary>
     /// Jump to the specified offset from the current position.
     /// </summary>
     /// <param name="offset">The offset from the current position to jump to.</param>
-    // [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    fn ExecuteJumpOffset(&self, offset: i32)
+    #[inline]
+    fn execute_jump_offset(&mut self, offset: i32)
     {
-        ExecuteJump(checked(CurrentContext!.InstructionPointer + offset));
+        self.execute_jump(checked(self.current_context?.InstructionPointer + offset));
     }
 
-    fn ExecuteLoadFromSlot(slot: Option<Slot>, index: i32)
+    fn execute_load_from_slot(&mut self, slot: Option<Slot>, index: i32)
     {
-        if (slot.is_none()) { panic!(); }
-        // throw new InvalidOperationException("Slot has not been initialized.");
-        if (index < 0 || index >= slot.unwrap().Count) { panic!(); }
-        // throw new InvalidOperationException( $ "Index out of range when loading from slot: {index}");
-        Push(slot[index]);
+        if slot.is_none() { panic!(); }
+
+        if index < 0 || index >= slot.unwrap().Count { panic!(); }
+
+        self.push(slot[index]);
     }
 
     /// <summary>
     /// Execute the next instruction.
     /// </summary>
-    fn ExecuteNext(&mut self)
+    fn execute_next(&mut self)
     {
         if (InvocationStack.Count == 0)
         {
@@ -1589,9 +1539,9 @@ impl ExecutionEngine
                     PreExecuteInstruction();
                     ExecuteInstruction();
                     PostExecuteInstruction();
-                    if (!self.isJumping)
+                    if (!self.is_jumping)
                     context.MoveNext();
-                    self.isJumping = false;
+                    self.is_jumping = false;
                 }
             catch(Exception e)
             {
@@ -1600,12 +1550,12 @@ impl ExecutionEngine
         }
     }
 
-    fn ExecuteStoreToSlot(&mut self, slot: Option<&Slot>, index: i32)
+    fn execute_store_to_slot(&mut self, slot: Option<Slot>, index: i32)
     {
-        if (slot.is_none()) { panic!(); }
-        // throw new InvalidOperationException("Slot has not been initialized.");
-        if (index < 0 || index >= slot.Count) { panic!(); }
-        // throw new InvalidOperationException( $ "Index out of range when storing to slot: {index}");
+        if slot.is_none() { panic!(); }
+
+        if index < 0 || index >= slot.Count { panic!(); }
+
         slot[index] = Pop();
     }
 
@@ -1613,45 +1563,38 @@ impl ExecutionEngine
     /// Throws a specified exception in the VM.
     /// </summary>
     /// <param name="ex">The exception to be thrown.</param>
-    fn ExecuteThrow(&mut self, ex: &StackItem)
+    fn execute_throw(&mut self, ex: &StackItem)
     {
-        self.UncaughtException = ex;
-        HandleException();
+        self.uncaught_exception = ex;
+        self.handle_exception();
     }
 
-    // [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    fn ExecuteTry(&mut self, catchOffset: i32, finallyOffset: i32)
+    #[inline]
+    fn execute_try(&mut self, catchOffset: i32, finallyOffset: i32)
     {
         if catchOffset == 0 && finallyOffset == 0 { panic!(); }
-        // throw
-        // new
-        // InvalidOperationException($ "catchOffset and finallyOffset can't be 0 in a TRY block");
-        if self.CurrentContext.unwrap().TryStack().is_none() {
-            CurrentContext.TryStack = new
-            Stack < ExceptionHandlingContext > ();
-        } else if (CurrentContext.TryStack.Count > = Limits.MaxTryNestingDepth) { panic!(); }
-        // throw
-        // new
-        // InvalidOperationException("MaxTryNestingDepth exceed.");
-        int
-        catchPointer = catchOffset == 0? - 1: checked(CurrentContext.InstructionPointer + catchOffset);
-        int
-        finallyPointer = finallyOffset == 0? - 1: checked(CurrentContext.InstructionPointer + finallyOffset);
-        CurrentContext.TryStack.Push(new ExceptionHandlingContext(catchPointer, finallyPointer));
+
+        if self.current_context.unwrap().try_stack().is_none() {
+            CurrentContext.try_stack = new Stack < ExceptionHandlingContext > ();
+        } else if CurrentContext.try_stack.Count > = Limits.MaxTryNestingDepth { panic!(); }
+
+        int catchPointer = catchOffset == 0? - 1: checked(CurrentContext.InstructionPointer + catchOffset);
+        int finallyPointer = finallyOffset == 0? - 1: checked(CurrentContext.InstructionPointer + finallyOffset);
+        CurrentContext.try_stack.Push(new ExceptionHandlingContext(catchPointer, finallyPointer));
     }
 
-    fn HandleException(&mut self)
+    fn handle_exception(&mut self)
     {
         let mut pop = 0;
-        for (executionContext in self.InvocationStack)
+        for (executionContext in self.invocation_stack)
         {
-            if (executionContext.TryStack != null)
+            if executionContext.try_stack.is_some()
             {
-                while (executionContext.TryStack.TryPeek(out var tryContext))
+                while executionContext.try_stack.TryPeek(out var tryContext)
                 {
-                    if (tryContext.State == ExceptionHandlingState.Finally || (tryContext.State == ExceptionHandlingState.Catch && !tryContext.HasFinally))
+                    if tryContext.State == ExceptionHandlingState.Finally || (tryContext.State == ExceptionHandlingState.Catch && !tryContext.HasFinally)
                     {
-                        executionContext.TryStack.Pop();
+                        executionContext.try_stack.Pop();
                         continue;
                     }
                     for i in 0..pop
@@ -1661,23 +1604,21 @@ impl ExecutionEngine
                     if tryContext.State == ExceptionHandlingState.Try && tryContext.HasCatch
                     {
                         tryContext.State = ExceptionHandlingState.Catch;
-                        Push(UncaughtException!);
+                        Push(uncaught_exception!);
                         executionContext.InstructionPointer = tryContext.CatchPointer;
-                        UncaughtException = null;
+                        uncaught_exception = null;
                     } else {
                         tryContext.State = ExceptionHandlingState.Finally;
                         executionContext.InstructionPointer = tryContext.FinallyPointer;
                     }
-                    self.isJumping = true;
+                    self.is_jumping = true;
                     return;
                 }
             }
             pop += 1;
         }
 
-        // throw
-        // new
-        // VMUnhandledException(UncaughtException!);
+        panic!()
     }
 
     /// <summary>
@@ -1686,14 +1627,12 @@ impl ExecutionEngine
     /// <param name="context">The context to load.</param>
     fn LoadContext(&mut self, context: &ExecutionContext)
     {
-        if self.InvocationStack.Count >= self.Limits.MaxInvocationStackSize {panic!();}
-        // throw
-        // new
-        // InvalidOperationException($ "MaxInvocationStackSize exceed: {InvocationStack.count}");
+        if self.invocation_stack.Count >= self.limits.max_invocation_stack_size() {panic!();}
+
         InvocationStack.Push(context);
         if (self.EntryContext.is_none()) {EntryContext = context;}
 
-        self.CurrentContext = Some(context.clone());
+        self.current_context = Some(context.clone());
     }
 
     /// <summary>
@@ -1703,13 +1642,12 @@ impl ExecutionEngine
     /// <param name="rvcount">The number of values that the context should return when it is unloaded.</param>
     /// <param name="initialPosition">The pointer indicating the current instruction.</param>
     /// <returns>The created context.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected ExecutionContext CreateContext(Script script, int rvcount, int initialPosition)
+    // [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    fn  CreateContext( script:&Script, rvcount:i32, initialPosition:i32)->ExecutionContext
     {
-    return new ExecutionContext(script, rvcount, ReferenceCounter)
-    {
-    InstructionPointer = initialPosition
-    };
+      let mut ctx = ExecutionContext::new(script, rvcount, ReferenceCounter);
+        ctx.set_instructionPointer(initialPosition);
+        ctx
     }
 
     /// <summary>
@@ -1719,7 +1657,7 @@ impl ExecutionEngine
     /// <param name="rvcount">The number of values that the context should return when it is unloaded.</param>
     /// <param name="initialPosition">The pointer indicating the current instruction.</param>
     /// <returns>The created context.</returns>
-    pub fn LoadScript(script: &Script, rvcount: i32 = - 1,  initialPosition: i32 = 0) -> ExecutionContext
+    pub fn LoadScript(script: &Script, rvcount: i32,  initialPosition: i32) -> ExecutionContext
     {
         let mut context = CreateContext { script, rvcount, initialPosition };
         LoadContext(context);
@@ -1769,11 +1707,11 @@ impl ExecutionEngine
     /// </summary>
     /// <param name="index">The index of the object from the top of the stack.</param>
     /// <returns>The item at the specified index.</returns>
-    pub fn Peek(&self, index: Option<i32>) -> StackItem
+    pub fn Peek(&self, index: Option<i32>) -> Box<StackItem>
     {
         match index {
-            Some(val) => self.CurrentContext.unwrap().EvaluationStack.Peek(index),
-            None => { self.CurrentContext.unwrap().EvaluationStack.Peek(0) }
+            Some(val) => self.current_context.unwrap().EvaluationStack.Peek(index),
+            None => { self.current_context.unwrap().EvaluationStack.Peek(0) }
         }
     }
 
@@ -1781,9 +1719,9 @@ impl ExecutionEngine
     /// Removes and returns the item at the top of the current stack.
     /// </summary>
     /// <returns>The item removed from the top of the stack.</returns>
-    pub fn Pop(&mut self) -> StackItem
+    pub fn Pop(&mut self) -> Box<StackItem>
     {
-        self.CurrentContext.unwrap().EvaluationStack.Pop()
+        self.current_context.unwrap().EvaluationStack.Pop()
     }
 
     /// <summary>
@@ -1791,32 +1729,32 @@ impl ExecutionEngine
     /// </summary>
     /// <typeparam name="T">The type to convert to.</typeparam>
     /// <returns>The item removed from the top of the stack.</returns>
-    pub fn T Pop<T>() where T : StackItem
-    {
-    return CurrentContext !.EvaluationStack.Pop < T >();
-    }
+    // pub fn T Pop<T>(&mut self) where T : StackItem
+    // {
+    //     self.current_context!.EvaluationStack.Pop < T >();
+    // }
 
     /// <summary>
     /// Called after an instruction is executed.
     /// </summary>
-    protected virtual void PostExecuteInstruction()
-    {
-    if (ReferenceCounter.CheckZeroReferred() > Limits.MaxStackSize)
-    throw new InvalidOperationException( $ "MaxStackSize exceed: {ReferenceCounter.count}");
-    }
-
-    /// <summary>
-    /// Called before an instruction is executed.
-    /// </summary>
-    protected virtual void PreExecuteInstruction() {}
+    // protected virtual void PostExecuteInstruction()
+    // {
+    // if (ReferenceCounter.CheckZeroReferred() > Limits.MaxStackSize)
+    // throw new InvalidOperationException( $ "MaxStackSize exceed: {ReferenceCounter.count}");
+    // }
+    //
+    // /// <summary>
+    // /// Called before an instruction is executed.
+    // /// </summary>
+    // protected virtual void PreExecuteInstruction() {}
 
     /// <summary>
     /// Pushes an item onto the top of the current stack.
     /// </summary>
     /// <param name="item">The item to be pushed.</param>
-    pub fn void Push(StackItem item)
+    pub fn Push(&mut self, item: Box<StackItem>)
     {
-    CurrentContext !.EvaluationStack.Push(item);
+        self.current_context?.EvaluationStack().Push(item);
     }
 }
 // }

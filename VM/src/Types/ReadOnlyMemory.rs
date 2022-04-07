@@ -4,13 +4,13 @@ impl ReadOnlyMemory {
 
     // fn Empty
 
-    fn IsEmpty(&self) -> bool {
+    fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
 
-    fn Length(&self) -> usize { self.0.len() }
+    fn length(&self) -> usize { self.0.len() }
 
 
-    fn Span(&self) ->
+    fn span(&self) ->
 }

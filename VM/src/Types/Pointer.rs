@@ -3,9 +3,8 @@ use crate::Types::StackItem::StackItem;
 use crate::Types::StackItemType::StackItemType;
 
 /// <summary>
-    /// Represents the instruction pointer in the VM, used as the target of jump instructions.
-    /// </summary>
-// [DebuggerDisplay("Type={GetType().Name}, Position={Position}")]
+/// Represents the instruction pointer in the VM, used as the target of jump instructions.
+/// </summary>
 #[derive(Clone, Copy, Debug)]
 pub struct Pointer {
     script: Script,
@@ -36,7 +35,7 @@ impl Pointer
     //     this.Position = position;
     // }
 
-    fn Equals(other:&dyn StackItem) -> bool
+    fn equals(other:&dyn StackItem) -> bool
     {
         if other == this { return true; }
 
@@ -47,12 +46,12 @@ impl Pointer
         return false;
     }
 
-    fn GetBoolean() -> bool
+    fn boolean() -> bool
     {
         return true;
     }
 
-    fn GetHashCode() -> i32
+    fn hash_code() -> i32
     {
         return HashCode.Combine(Script, Position);
     }
