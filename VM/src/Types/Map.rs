@@ -15,7 +15,7 @@ impl StackItem for Map {
         StackItemType::Map
     }
 
-    fn ConvertTo(&self, typ: StackItemType) -> Self {
+    fn convertTo(&self, typ: StackItemType) -> Self {
         todo!()
     }
 
@@ -23,11 +23,11 @@ impl StackItem for Map {
 }
 
 impl CompoundType for Map {
-    fn Count(&self) -> i32 {
+    fn count(&self) -> i32 {
         todo!()
     }
 
-    fn At(&self, index: i32) -> &dyn StackItem {
+    fn at(&self, index: i32) -> &dyn StackItem {
         if (key.Size > MaxKeySize)
         throw
         new
@@ -35,23 +35,23 @@ impl CompoundType for Map {
         return dictionary[key];
     }
 
-    fn Set(&mut self, index: i32, value: &dyn StackItem) {
+    fn set(&mut self, index: i32, value: &dyn StackItem) {
         todo!()
     }
 
-    fn SubItems(&self) -> Iter<'_, dyn StackItem> {
+    fn sub_items(&self) -> Iter<'_, dyn StackItem> {
         todo!()
     }
 
-    fn SubItemsCount(&self) -> i32 {
+    fn sub_items_count(&self) -> i32 {
         todo!()
     }
 
-    fn Clear() {
+    fn clear() {
         todo!()
     }
 
-    fn DeepCopy(refMap: &HashMap<dyn StackItem, dyn StackItem>) -> dyn StackItem {
+    fn deep_copy(refMap: &HashMap<dyn StackItem, dyn StackItem>) -> dyn StackItem {
         todo!()
     }
 }

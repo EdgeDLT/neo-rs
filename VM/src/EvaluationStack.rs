@@ -1,13 +1,27 @@
-use crate::ReferenceCounter::ReferenceCounter;
+use crate::reference_counter::reference_counter;
 use std::option::Iter;
+use crate::StackItem::StackItem;
+use crate::StackItemType::StackItemType;
+use alloc::vec::Vec;
+use std::any::TypeId;
+use primitive_types::H256;
 
+#[derive(Clone, Debug)]
 pub struct EvaluationStack {
-    innerList: Vec<StackItem>,
-    referenceCounter: ReferenceCounter,
+    inner_list: Vec<StackItem>,
+    reference_counter: reference_counter,
 
 }
 
-impl StackItem for EvaluationStack {}
+impl StackItem for EvaluationStack {
+    fn Type() -> StackItemType {
+        todo!()
+    }
+
+    fn ConvertTo(&self, typ: StackItemType) -> Self {
+        todo!()
+    }
+}
 
 //     /// <summary>
 /// Represents the evaluation stack in the VM.
@@ -15,56 +29,54 @@ impl StackItem for EvaluationStack {}
 impl EvaluationStack
 {
 
-// internal EvaluationStack(ReferenceCounter referenceCounter)
+// internal EvaluationStack(reference_counter reference_counter)
 // {
-// this.referenceCounter = referenceCounter;
+// this.reference_counter = reference_counter;
 // }
 
     /// <summary>
     /// Gets the number of items on the stack.
     /// </summary>
-    pub fn Count(&self) -> usize { self.innerList.len() }
+    pub fn count(&self) -> usize { self.inner_list.len() }
 
-    pub fn Clear(&mut self)
+    pub fn clear(&mut self)
     {
-        for item in self.innerList {
-            self.referenceCounter.RemoveStackReference(item);
+        for item in self.inner_list {
+            self.reference_counter.RemoveStackReference(item);
         }
 
-        self.innerList.clear();
+        self.inner_list.clear();
     }
 
-    pub fn CopyTo(&mut self, stack: &EvaluationStack, mut count: Option<i32>)
+    pub fn copy_to(&mut self, stack: &EvaluationStack, mut count: Option<i32>)
     {
         if count.is_none() { count = Some(-1); }
-        if count.unwrap() < -1 || count.unwrap() > self.innerList.len() as i32 { panic!(); }
+        if count.unwrap() < -1 || count.unwrap() > self.inner_list.len() as i32 { panic!(); }
         if count.unwrap() == 0 { return; }
-        if count.unwrap() == -1 || count.unwrap() == self.innerList.len()
-        { stack.innerList.AddRange(&self.innerList); } else { stack.innerList.AddRange(&self.innerList.Skip(self.innerList.len() - count)); }
+        if count.unwrap() == -1 || count.unwrap() == self.inner_list.len()
+        { stack.inner_list.AddRange(&self.inner_list); } else { stack.inner_list.AddRange(&self.inner_list.Skip(self.inner_list.len() - count)); }
     }
 
-    pub fn GetEnumerator(&self) -> std::slice::Iter<'_, _>
+    pub fn enumerator(&self) -> std::slice::Iter<'_, _>
     {
-        self.innerList.iter()
+        self.inner_list.iter()
     }
 
     // IEnumerator IEnumerable.GetEnumerator()
     // {
-    // return innerList.GetEnumerator();
+    // return inner_list.GetEnumerator();
     // }
 
-    // [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    pub fn Insert(&mut self, index: i32, item: &StackItem)
+    #[inline]
+    pub fn insert(&mut self, index: i32, item: &StackItem)
     {
-        if index > self.innerList.len() as i32 { panic!(); }
-        // throw
-        // new
-        // InvalidOperationException($ "Insert out of bounds: {index}/{innerList.count}");
-        self.innerList.Insert(innerList.Count - index, item);
-        self.referenceCounter.AddStackReference(item);
+        if index > self.inner_list.len() as i32 { panic!(); }
+
+        self.inner_list.insert(self.inner_list.len() - index, item);
+        self.reference_counter.add_stack_reference(item);
     }
 
-    pub fn MoveTo(&self, stack: &EvaluationStack, mut count: Option<i32>)
+    pub fn moveTo(&self, stack: &EvaluationStack, mut count: Option<i32>)
     {
         if count.is_none() {
             count = Some(-1);
@@ -73,11 +85,11 @@ impl EvaluationStack
 
         CopyTo(stack, count);
 
-        if count.unwrap() == -1 || count.unwrap() == self.innerList.len() as i32
+        if count.unwrap() == -1 || count.unwrap() == self.inner_list.len() as i32
         {
-            innerList.Clear();
+            inner_list.Clear();
         } else {
-            self.innerList.RemoveRange(innerList.Count - count, count);
+            self.inner_list.remove_range(inner_list.Count - count, count);
         }
     }
 
@@ -86,25 +98,20 @@ impl EvaluationStack
     /// </summary>
     /// <param name="index">The index of the object from the top of the stack.</param>
     /// <returns>The item at the specified index.</returns>
-    // [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    pub fn Peek(&mut self, mut index: Option<i32>) -> &StackItem
+    pub fn peek(&mut self, mut index: Option<i32>) -> &StackItem
     {
         if index.is_none() {
             index = Some(0);
         }
         let mut id = index.unwrap();
 
-        if id >= self.innerList.Count { panic!(); }
-        // throw?rationException($ "Peek out of bounds: {index}/{innerList.count}");
+        if id >= self.inner_list.len() { panic!(); }
         if id < 0
         {
-            id += self.innerList.len();
+            id += self.inner_list.len();
             if id < 0 { panic!(); }
-            // throw
-            // new
-            // InvalidOperationException($ "Peek out of bounds: {index}/{innerList.count}");
         }
-        self.innerList[self.innerList.len() - id - 1]
+        self.inner_list[self.inner_list.len() - id - 1]
     }
 
     // StackItem IReadOnlyList < StackItem >.this[int index] => Peek(index);
@@ -113,23 +120,19 @@ impl EvaluationStack
     /// Pushes an item onto the top of the stack.
     /// </summary>
     /// <param name="item">The item to be pushed.</param>
-    // [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    pub fn Push(&mut self, item: &StackItem)
+    pub fn push(&mut self, item: Box<StackItem>)
     {
-        self.innerList.push(item);
-        self.referenceCounter.AddStackReference(item);
+        self.inner_list.push(item);
+        self.reference_counter.add_stack_reference(item);
     }
 
-    // [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    pub fn Reverse(&mut self, n: i32)
+    pub fn reverse(&mut self, n: i32)
     {
-        if n < 0 || n > self.innerList.len() as i32 { panic!(); }
-        // throw new ArgumentOutOfRangeException(nameof(n));
+        if n < 0 || n > self.inner_list.len() as i32 { panic!(); }
         if n <= 1 {
             return;
         }
-
-        self.innerList.Reverse(self.innerList.len() - n, n);
+        self.inner_list.reverse(self.inner_list.len() - n, n);
     }
 
     /// <summary>
@@ -147,29 +150,27 @@ impl EvaluationStack
     /// </summary>
     /// <typeparam name="T">The type to convert to.</typeparam>
     /// <returns>The item removed from the top of the stack.</returns>
-    // [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    pub fn Pop<T>(&mut self) -> T
+    pub fn pop<T>(&mut self) -> T
         where T: StackItem
     {
-        self.Remove::<T>(0)
+        self.remove::<T>(0)
     }
 
-    pub fn Remove<T>(&mut self, mut index: i32) -> T
+    pub fn remove<T>(&mut self, mut index: i32) -> T
         where T: StackItem
     {
-        if index >= self.innerList.len() as i32 { panic!(); }
-        // throw new ArgumentOutOfRangeException(nameof(index));
+        if index >= self.inner_list.len() as i32 { panic!(); }
         if index < 0
         {
-            index += self.innerList.len();
+            index += self.inner_list.len();
             if index < 0 { panic!(); }
-            // throw new ArgumentOutOfRangeException(nameof(index));
         }
-        index = self.innerList.len() as i32 - index - 1;
-        // if (innerList[index] is not T item)
+        index = self.inner_list.len() as i32 - index - 1;
+        // if (inner_list[index] is not T item)
         // throw new InvalidCastException( $ "The item can't be casted to type {typeof(T)}");
-        self.innerList.RemoveAt(index);
-        self.referenceCounter.RemoveStackReference(item);
+        // TypeId::of::<T>() == TypeId::of::<String>()
+        self.inner_list.remove_at(index);
+        self.reference_counter.remove_stack_reference(item);
         item
     }
 }

@@ -1,6 +1,7 @@
 /// <summary>
 /// Indicates the status of the VM.
 /// </summary>
+#[derive(Debug, Clone, Default, Eq, PartialEq)]
 pub enum VMState
 {
     /// <summary>

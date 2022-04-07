@@ -35,7 +35,7 @@ use crate::Types::StackItem::StackItem;
         /// Get the hash code of the VM object, which is used for key comparison in the <see cref="Map"/>.
         /// </summary>
         /// <returns>The hash code of this VM object.</returns>
-        fn  GetHashCode(&self)->i32{panic!()}
+        fn  hash_code(&self)->i32{panic!()}
 
         // fn sealed override ReadOnlySpan<byte> GetSpan()
         // {

@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 
 use crate::Instruction::Instruction;
-use crate::OpCode::{OpCode, toOpCode};
+use crate::OpCode;
+use crate::StackItemType::StackItemType;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct Script {
@@ -19,7 +20,7 @@ impl Script
     /// <summary>
     /// The length of the script.
     /// </summary>
-    pub fn Length(&self) -> usize
+    pub fn length(&self) -> usize
     {
         self._value.len() as usize
     }
@@ -29,7 +30,7 @@ impl Script
     /// </summary>
     /// <param name="index">The index to locate.</param>
     /// <returns>The <see cref="OpCode"/> at the specified index.</returns>
-    pub fn At(&self, index: usize) -> OpCode
+    pub fn at(&self, index: usize) -> OpCode
     {
         toOpCode(self._value[index]).unwrap()
     }
@@ -124,13 +125,7 @@ impl Script
                     OpCode::CONVERT => {
                         let Type: StackItemType = instruction.TokenU8() as StackItemType;
                         if !Enum.IsDefined(typeof(StackItemType), Type) { panic!(); }
-                        // throw
-                        // new
-                        // BadScriptException();
                         if instruction.OpCode != OpCode.NEWARRAY_T && Type == StackItemType.Any { panic!(); }
-                        // throw
-                        // new
-                        // BadScriptException($ "ip: {ip}, opcode: {instruction.OpCode}");
                         break;
                     }
                     _ => { unreachable!() }
@@ -146,7 +141,7 @@ impl Script
     /// <param name="ip">The position to get the <see cref="Instruction"/>.</param>
     /// <returns>The <see cref="Instruction"/> at the specified position.</returns>
     /// <exception cref="ArgumentException">In strict mode, the <see cref="Instruction"/> was not found at the specified position.</exception>
-    pub fn GetInstruction(&self, ip: usize) -> Instruction
+    pub fn instruction(&self, ip: usize) -> Instruction
     {
         if ip >= self.Length() { return Instruction.RET; }
 
@@ -154,11 +149,10 @@ impl Script
         {
             if self.strictMode { panic!(); }
             // throw new ArgumentException( $ "ip not found with strict mode", nameof(ip));
-            instruction =
-            Instruction{_value, ip};
+            instruction =  Instruction{_value, ip};
             _instructions.Add(ip, instruction);
         }
-        return instruction;
+         instruction
     }
 
     // public static implicit operator byte[](Script script) => script._value;

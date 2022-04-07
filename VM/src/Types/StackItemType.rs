@@ -1,6 +1,7 @@
 /// <summary>
 /// An enumeration representing the types in the VM.
 /// </summary>
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum StackItemType
 {
     /// <summary>

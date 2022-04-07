@@ -10,7 +10,7 @@ impl StackItem for ByteString {
         StackItemType::ByteString
     }
 
-    fn ConvertTo(&self, typ: StackItemType) -> Self {
+    fn convertTo(&self, typ: StackItemType) -> Self {
         todo!()
     }
 }

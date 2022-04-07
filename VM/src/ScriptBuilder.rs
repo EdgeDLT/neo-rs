@@ -1,6 +1,12 @@
+use num::BigInt;
+use num::bigint::Sign;
+use crate::Memory::Memory;
+
+use crate::OpCode::OpCode;
+
 #[derive(Debug, Clone, Default, Eq, PartialEq)]
 pub struct ScriptBuilder {
-    ms: MemoryStream,
+    ms: Memory,
     writer: BinaryWriter,
 }
 
@@ -10,20 +16,22 @@ pub struct ScriptBuilder {
 impl ScriptBuilder
 {
     /// <summary>
-    /// The length of the script.
-    /// </summary>
-    pub fn Length() -> i32 {
-        (int)
-        ms.Position
-    }
-
-    /// <summary>
     /// Initializes a new instance of the <see cref="ScriptBuilder"/> class.
     /// </summary>
-    // public ScriptBuilder()
-    // {
-    // writer = new BinaryWriter(ms);
-    // }
+    pub fn New() -> Self {
+        let mut writer = BinaryWriter(ms);
+        let mut ms = Memory();
+        Self {
+            ms,
+            writer,
+        }
+    }
+    /// <summary>
+    /// The length of the script.
+    /// </summary>
+    pub fn Length(&self) -> i32 {
+        self.ms.Position
+    }
 
     // public void Dispose()
     // {
@@ -37,12 +45,16 @@ impl ScriptBuilder
     /// <param name="opcode">The <see cref="OpCode"/> to be emitted.</param>
     /// <param name="operand">The operand to be emitted.</param>
     /// <returns>A reference to this instance after the emit operation has completed.</returns>
-    public ScriptBuilder Emit(OpCode opcode, byte[] ? operand = null)
+    pub fn Emit(&mut self, opcode: OpCode, operand: Option<byte>) -> &mut ScriptBuilder
     {
-    writer.Write((byte)opcode);
-    if (operand != null)
-    writer.Write(operand);
-    return this;
+        self.writer.Write(opcode);
+        match operand {
+            // The division was valid
+            Some(x) => writer.Write(x),
+            // The division was invalid
+            None => {},
+        }
+        self
     }
 
     /// <summary>
@@ -50,12 +62,14 @@ impl ScriptBuilder
     /// </summary>
     /// <param name="offset">The offset to be called.</param>
     /// <returns>A reference to this instance after the emit operation has completed.</returns>
-    public ScriptBuilder EmitCall(int offset)
+    pub fn EmitCall(&mut self, offset: i32) -> &mut ScriptBuilder
     {
-    if (offset < sbyte.MinValue | | offset > sbyte.MaxValue)
-    return Emit(OpCode.CALL_L, BitConverter.GetBytes(offset));
-    else
-    return Emit(OpCode.CALL, new[] { (byte)offset });
+        // if (offset < sbyte.MinValue | | offset > sbyte.MaxValue)
+
+        self.Emit(OpCode::CALL_L, BitConverter.GetBytes(offset));
+        self
+        // else
+        // return Emit(OpCode.CALL, new[] { (byte)offset });
     }
 
     /// <summary>
@@ -64,16 +78,22 @@ impl ScriptBuilder
     /// <param name="opcode">The <see cref="OpCode"/> to be emitted. It must be a jump <see cref="OpCode"/></param>
     /// <param name="offset">The offset to jump.</param>
     /// <returns>A reference to this instance after the emit operation has completed.</returns>
-    public ScriptBuilder EmitJump(OpCode opcode, int offset)
+    pub fn EmitJump(&mut self, mut opcode: OpCode, offset: i32) -> &mut ScriptBuilder
     {
-    if (opcode < OpCode.JMP | | opcode > OpCode.JMPLE_L)
-    throw new ArgumentOutOfRangeException(nameof(opcode));
-    if ((int)opcode % 2 == 0 & & (offset < sbyte.MinValue | | offset > sbyte.MaxValue))
-    opcode += 1;
-    if ((int)opcode % 2 == 0)
-    return Emit(opcode, new[] { (byte)offset });
-    else
-    return Emit(opcode, BitConverter.GetBytes(offset));
+        if opcode < OpCode::JMP || opcode > OpCode::JMPLE_L {
+            panic!();
+        }
+
+        if opcode % 2 == 0 && (offset < sbyte.MinValue || offset > sbyte.MaxValue) {
+            opcode.0 = opcode.0 + 1; /// TODO: Check this
+        }
+
+        if opcode % 2 == 0 {
+            self.Emit(opcode, StackItem { offset })
+        } else {
+            self.Emit(opcode, BitConverter.GetBytes(offset))
+        }
+        self
     }
 
     /// <summary>
@@ -81,17 +101,24 @@ impl ScriptBuilder
     /// </summary>
     /// <param name="value">The number to be pushed.</param>
     /// <returns>A reference to this instance after the emit operation has completed.</returns>
-    public ScriptBuilder EmitPush(BigInt value)
+    pub fn EmitPush(&mut self, value: BigInt) -> &mut ScriptBuilder
     {
-    if (value > = - 1 & & value < = 16) return Emit(OpCode.PUSH0 + (byte)(int)value);
-    byte[] data = value.ToByteArray(isUnsigned: false, isBigEndian: false);
-    if (data.Length == 1) return Emit(OpCode.PUSHINT8, data);
-    if (data.Length == 2) return Emit(OpCode.PUSHINT16, data);
-    if (data.Length <= 4) return Emit(OpCode.PUSHINT32, PadRight(data, 4));
-    if (data.Length < = 8) return Emit(OpCode.PUSHINT64, PadRight(data, 8));
-    if (data.Length < = 16) return Emit(OpCode.PUSHINT128, PadRight(data, 16));
-    if (data.Length < = 32) return Emit(OpCode.PUSHINT256, PadRight(data, 32));
-    throw new ArgumentOutOfRangeException(nameof(value));
+        if value >= BigInt::from(-1) && value <= BigInt::from(16) {
+            self.Emit(OpCode::PUSH0 + (byte)(int)value)
+        };
+
+        let data = value.ToByteArray(false, false);
+        if data.Length == 1 {
+            Emit(OpCode::PUSHINT8, data);
+        }
+
+        if data.Length == 2 { self.Emit(OpCode::PUSHINT16, data); }
+        if data.Length <= 4 { self.Emit(OpCode::PUSHINT32, PadRight(data, 4)); }
+        if data.Length <= 8 { self.Emit(OpCode::PUSHINT64, PadRight(data, 8)); }
+        if data.Length <= 16 { self.Emit(OpCode::PUSHINT128, PadRight(data, 16)); }
+        if data.Length <= 32 { self.Emit(OpCode::PUSHINT256, PadRight(data, 32)); }
+        // panic!();
+        self
     }
 
     /// <summary>
@@ -99,9 +126,10 @@ impl ScriptBuilder
     /// </summary>
     /// <param name="value">The value to be pushed.</param>
     /// <returns>A reference to this instance after the emit operation has completed.</returns>
-    public ScriptBuilder EmitPush(bool value)
+    pub fn EmitPushBool(&mut self, value:bool) -> &mut ScriptBuilder
     {
-    return Emit(value ? OpCode.PUSH1: OpCode.PUSH0);
+        self.Emit(if value { OpCode::PUSH1 } else { OpCode::PUSH0 }, None);
+        self
     }
 
     /// <summary>
@@ -109,29 +137,27 @@ impl ScriptBuilder
     /// </summary>
     /// <param name="data">The data to be pushed.</param>
     /// <returns>A reference to this instance after the emit operation has completed.</returns>
-    public ScriptBuilder EmitPush(byte[] data)
+    pub fn EmitPushData(&mut self, data: &[u8]) -> &mut ScriptBuilder
     {
-    if (data == null)
-    throw new ArgumentNullException(nameof(data));
-    if (data.Length < 0x100)
-    {
-    Emit(OpCode.PUSHDATA1);
-    writer.Write((byte)data.Length);
-    writer.Write(data);
-    }
-    else if (data.Length < 0x10000)
-    {
-    Emit(OpCode.PUSHDATA2);
-    writer.Write((ushort)data.Length);
-    writer.Write(data);
-    }
-    else// if (data.Length < 0x100000000L)
-    {
-    Emit(OpCode.PUSHDATA4);
-    writer.Write(data.Length);
-    writer.Write(data);
-    }
-    return this;
+        // if (data == null)
+        // throw new ArgumentNullException(nameof(data));
+        if data.len() < 0x100
+        {
+            self.Emit(OpCode.PUSHDATA1);
+            self.writer.Write((byte)data.Length);
+            self.writer.Write(data);
+        } else if data.Length < 0x10000
+        {
+            self.Emit(OpCode.PUSHDATA2);
+            self.writer.Write((ushort)data.Length);
+            self.writer.Write(data);
+        } else// if (data.Length < 0x100000000L)
+        {
+            self.Emit(OpCode.PUSHDATA4);
+            self.writer.Write(data.Length);
+            self.writer.Write(data);
+        }
+        self
     }
 
     /// <summary>
@@ -139,9 +165,10 @@ impl ScriptBuilder
     /// </summary>
     /// <param name="data">The <see cref="string"/> to be pushed.</param>
     /// <returns>A reference to this instance after the emit operation has completed.</returns>
-    public ScriptBuilder EmitPush(string data)
+    pub fn EmitPushString(&mut self, data: &str) -> &mut ScriptBuilder
     {
-    return EmitPush(Utility.StrictUTF8.GetBytes(data));
+        self.EmitPush(Utility.StrictUTF8.GetBytes(data));
+        self
     }
 
     /// <summary>
@@ -149,11 +176,13 @@ impl ScriptBuilder
     /// </summary>
     /// <param name="script">The raw script to be emitted.</param>
     /// <returns>A reference to this instance after the emit operation has completed.</returns>
-    public ScriptBuilder EmitRaw(byte[] ? script = null)
+    pub fn EmitRaw(&mut self, script:Option<byte>) -> &mut ScriptBuilder
     {
-    if (script != null)
-    writer.Write(script);
-    return this;
+        match script{
+            Some(v)=>self.writer.Write(script),
+            None=>()
+        }
+        self
     }
 
     /// <summary>
@@ -161,25 +190,26 @@ impl ScriptBuilder
     /// </summary>
     /// <param name="api">The operand of <see cref="OpCode.SYSCALL"/>.</param>
     /// <returns>A reference to this instance after the emit operation has completed.</returns>
-    public ScriptBuilder EmitSysCall(uint api)
+    pub fn EmitSysCall(&mut self, api: u32) -> &mut ScriptBuilder
     {
-    return Emit(OpCode.SYSCALL, BitConverter.GetBytes(api));
+        self.Emit(OpCode.SYSCALL, api.to_be_bytes());
+        self
     }
 
     /// <summary>
     /// Converts the value of this instance to a byte array.
     /// </summary>
     /// <returns>A byte array contains the script.</returns>
-    public byte[] ToArray()
+    pub fn ToArray(&mut self)->
     {
-    writer.Flush();
-    return ms.ToArray();
+    self.writer.Flush();
+        self.ms.ToArray()
     }
 
-    private static byte[] PadRight(byte[] data, int length)
+    fn PadRight(data:&[u8], length:i32) -> &[u8]
     {
-    if (data.Length > = length) return data;
-    byte[] buffer = new byte[length];
+    if data.Length >= length{ return data;}
+    let mut buffer = new byte[length];
     Buffer.BlockCopy(data, 0, buffer, 0, data.Length);
     return buffer;
     }

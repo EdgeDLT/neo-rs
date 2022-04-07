@@ -1,4 +1,5 @@
 use crate::ReferenceCounter::ReferenceCounter;
+use crate::StackItem::StackItem;
 
 #[derive(Debug, Clone, Default, Eq, PartialEq)]
 pub struct Slot {
@@ -16,20 +17,18 @@ impl Slot
     /// </summary>
     /// <param name="index">The zero-based index of the item to get.</param>
     /// <returns>The item at the specified index in the slot.</returns>
-    pub fn At(&self, index: i32) -> &StackItem
+    pub fn Get(&self, index: i32) -> &StackItem
     {
         self.items[index]
     }
 
-    fn set
+    pub fn Set(&mut self, index:i32, value: Box<StackItem>)
     {
-        ref var
-        oldValue = ref items[index];
-        referenceCounter.RemoveStackReference(oldValue);
+        let oldValue =  self.items[index];
+        self.referenceCounter.RemoveStackReference(oldValue);
         oldValue = value;
-        referenceCounter.AddStackReference(value);
+        self.referenceCounter.AddStackReference(value);
     }
-
 
     /// <summary>
     /// Gets the number of items in the slot.
@@ -47,12 +46,10 @@ impl Slot
             referenceCounter,
             items: items.clone(),
         };
-
-        for (item in items)
+        for item in items.iter()
         {
             slot.referenceCounter.AddStackReference(item);
         }
-
         slot
     }
 
@@ -61,24 +58,31 @@ impl Slot
     /// </summary>
     /// <param name="count">Indicates the number of items contained in the slot.</param>
     /// <param name="referenceCounter">The reference counter to be used.</param>
-    public Slot(int count, ReferenceCounter referenceCounter)
+    pub fn New(count:int, mut referenceCounter:ReferenceCounter) ->Self
     {
-    this.referenceCounter = referenceCounter;
-    this.items = new StackItem[count];
-    System.Array.Fill(items, StackItem.Null);
+    // this.referenceCounter = referenceCounter;
+    // this.items = new StackItem[count];
+    // Array.Fill(items, StackItem.Null);
     referenceCounter.AddReferences(count);
+
+        Self{
+            referenceCounter,
+            // new StackItem[count,
+            // ]
+            items: vec![]
+        }
     }
 
-    fn ClearReferences(&mut self)
+    pub(crate) fn ClearReferences(&mut self)
     {
-        for (item in self.items)
+        for item in self.items.iter()
         { self.referenceCounter.RemoveStackReference(item); }
     }
 
-    IEnumerator < StackItem > IEnumerable < StackItem >.GetEnumerator()
-    {
-    foreach (StackItem item in items) yield return item;
-    }
+    // IEnumerator < StackItem > IEnumerable < StackItem >.GetEnumerator()
+    // {
+    // foreach (StackItem item in items) yield return item;
+    // }
 
 // IEnumerator IEnumerable.GetEnumerator()
 // {

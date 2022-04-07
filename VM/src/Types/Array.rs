@@ -10,7 +10,7 @@ use std::slice::Iter;
 #[derive(Debug, Clone, Default, Eq, PartialEq)]
 pub struct Array {
     _array: Vec<dyn StackItem>,
-    ReferenceCounter: Option<ReferenceCounter>,
+    reference_counter: Option<ReferenceCounter>,
 }
 
 
@@ -26,7 +26,7 @@ impl StackItem for Array {
         }
         // return base.ConvertTo( type );
 
-        if typ == Type { return Array { _array: self._array.clone(), ReferenceCounter: self.ReferenceCounter }; }
+        if typ == Type { return Array { _array: self._array.clone(), ReferenceCounter: self.reference_counter }; }
 
         if typ == StackItemType::Boolean
         {
@@ -37,11 +37,11 @@ impl StackItem for Array {
 }
 
 impl CompoundType for Array {
-    fn ReferenceCounter(&self) -> Option<ReferenceCounter> {
+    fn reference_counter(&self) -> Option<ReferenceCounter> {
         todo!()
     }
 
-    fn Count(&self) -> i32 {
+    fn count(&self) -> i32 {
         self._array.len() as i32
     }
 
