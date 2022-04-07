@@ -7,8 +7,8 @@ edition = "2018"
 
 [dependencies]
 hmac = "0.11.0"
+aes-soft = "0.99.99"
 sha3 = "0.10.0"
-aes-soft = "0.6.4"
 block-modes = "0.8.1"
 merkletree = "0.21.0"
 
